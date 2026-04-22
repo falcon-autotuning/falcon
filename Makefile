@@ -1,7 +1,7 @@
 # Falcon-lib Root Makefile
 # Manages build configurations for all submodules
 
-.PHONY: all deps help clean install-vcpkg-deps build-all test-all install-deps 
+.PHONY: all deps help clean install-vcpkg-deps build-all test-all install-deps install-libs
 
 VCPKG_ROOT ?= $(CURDIR)/.vcpkg
 VCPKG_TOOLCHAIN ?= $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
@@ -70,13 +70,19 @@ install-vcpkg-deps:
 	$(SUDO) cp $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/cereal-xtensor/types/xtensor.hpp $(INCLUDEDIR)/cereal/types/xtensor.hpp
 	@echo "✓ vcpkg dependencies installed"
 
-install:
+install: install-libs
 	@echo "Installing falcon metapackage wrapper..."
 	$(SUDO) mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
 	$(SUDO) find $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/tools -type f -exec cp -v {} $(PREFIX)/bin/ \; 2>/dev/null || true
 	$(SUDO) cp -P $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/lib/*.so* $(PREFIX)/lib/ 2>/dev/null || true
 	$(SUDO) cp -r $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/* $(PREFIX)/include/ 2>/dev/null || true
 	@echo "✓ Metapackage binaries installed to $(PREFIX)"
+
+install-libs:
+	@echo "Installing standard libraries to $(PREFIX)/packages..."
+	$(SUDO) mkdir -p $(PREFIX)/packages
+	$(SUDO) cp -r $(CURDIR)/libs/* $(PREFIX)/packages/
+	@echo "✓ Standard libraries installed."
 
 clean:
 	@echo "Cleaning all components..."
