@@ -122,8 +122,9 @@ DOCKER_TAG ?= latest
 DB_CONTAINER_NAME ?= falcon-postgres
 DB_PORT ?= 5432
 CONFIG_VOLUME ?= falcon-config
+DB_DATA_VOLUME ?= falcon-postgres-data
 
-.PHONY: docker-build docker-push docker-pull docker-db-start docker-db-stop docker-install-wrappers docker-uninstall-wrappers docker-teardown
+.PHONY: docker-build docker-push docker-pull docker-db-start docker-db-stop docker-db-purge docker-install-wrappers docker-uninstall-wrappers docker-teardown
 
 docker-build:
 	@echo "Building FAlCon Docker Image..."
@@ -160,19 +161,27 @@ docker-db-start:
 	@# 2. Start Postgres using the _FILE variables, pointing to the volume.
 	@docker run -d --name $(DB_CONTAINER_NAME) \
 		-v $(CONFIG_VOLUME):/config:ro \
+		-v $(DB_DATA_VOLUME):/var/lib/postgresql/data \
 		-e POSTGRES_USER_FILE=/config/db_user.txt \
 		-e POSTGRES_PASSWORD_FILE=/config/db_pass.txt \
 		-e POSTGRES_DB_FILE=/config/db_name.txt \
 		-p $(DB_PORT):5432 \
 		postgres:15
-	@echo "✓ Database started securely."
+	@echo "✓ Database started securely with persistent volume $(DB_DATA_VOLUME)."
 
 docker-db-stop:
-	@echo "Stopping database and destroying secure configuration..."
+	@echo "Stopping database container (data persists in volumes)..."
+	-docker stop $(DB_CONTAINER_NAME)
+	-docker rm $(DB_CONTAINER_NAME)
+	@echo "✓ Database container stopped."
+
+docker-db-purge:
+	@echo "DANGER: Destroying all database data and configurations..."
 	-docker stop $(DB_CONTAINER_NAME)
 	-docker rm $(DB_CONTAINER_NAME)
 	-docker volume rm $(CONFIG_VOLUME)
-	@echo "✓ Database and credentials destroyed."
+	-docker volume rm $(DB_DATA_VOLUME)
+	@echo "✓ Persistence volumes destroyed."
 
 docker-install-wrappers:
 	@if [ "$(UNAME_S)" = "Linux" ] || [ "$(UNAME_S)" = "Darwin" ]; then \

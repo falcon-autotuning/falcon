@@ -60,8 +60,9 @@ RUN if [ -n "$NUGET_API_KEY" ] && [ -n "$NUGET_FEED_URL" ]; then \
     make install-vcpkg-deps 
 
 # runs the make install command that builds the current package and installs it to /opt/falcon/
-# runs the make install command that builds the current package and installs it to /opt/falcon/
-RUN make install
+RUN make install && \
+    mv /opt/falcon /opt/falcon-seed && \
+    mkdir -p /opt/falcon
 
 # Set the environment variables
 ENV PATH="/opt/falcon/bin:/opt/falcon/lib:${PATH}"

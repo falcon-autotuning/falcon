@@ -20,10 +20,14 @@ fi
 # This ensures we start in the same relative subdirectory inside the container
 rel_path=$(python3 -c "import os; print(os.path.relpath('$(pwd)', '$project_root'))")
 
+# Ensure host persistence directory exists
+mkdir -p "$HOME/.falcon/opt"
+
 docker run -it --rm \
   -v "$project_root:/workspace" \
+  -v "$HOME/.falcon/opt:/opt/falcon" \
   -v falcon-config:/config:ro \
   -u "$(id -u):$(id -g)" \
   -w "/workspace/$rel_path" \
-  -e FALCON_DB_URL="$FALCON_DB_URL" \
+  -e FALCON_DATABASE_URL="$FALCON_DATABASE_URL" \
   falcon-cli:latest falcon-pm "$@"
