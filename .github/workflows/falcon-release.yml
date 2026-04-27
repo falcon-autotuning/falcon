@@ -62,3 +62,29 @@ jobs:
             ./packaging/docker/test-docker-executables.sh $tag
           done
         shell: bash
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: push-docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Package Release Artifacts
+        run: |
+          make package-release RELEASE_VERSION=${{ github.ref_name }}
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            packaging/release/falcon-${{ github.ref_name }}-Linux.tar.gz
+            packaging/release/falcon-${{ github.ref_name }}-win64.zip
+          token: ${{ secrets.GITHUB_TOKEN }}

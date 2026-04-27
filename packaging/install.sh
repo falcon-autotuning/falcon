@@ -15,7 +15,7 @@ set -euo pipefail
 RELEASE_VERSION="${1:-v1.0.0}"
 REPO_OWNER="falcon-autotuning"
 REPO_NAME="falcon"
-RELEASE_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION"
+RELEASE_URL="${FALCON_RELEASE_URL:-https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION}"
 
 # Detect platform
 detect_platform() {
@@ -46,12 +46,26 @@ fi
 if [ "$PLATFORM" = "windows" ]; then
   PACKAGE_FILE="falcon-${RELEASE_VERSION}-win64.zip"
   INSTALL_DIR="${FALCON_INSTALL_DIR:-C:/falcon}"
-  EXTRACT_CMD="unzip -q -o"
 else
   PACKAGE_FILE="falcon-${RELEASE_VERSION}-Linux.tar.gz"
   INSTALL_DIR="${FALCON_INSTALL_DIR:-/opt/falcon}"
-  EXTRACT_CMD="tar --strip-components=1 -xzf"
 fi
+
+extract_package() {
+  local archive="$1"
+  local dest="$2"
+  
+  if [ "$PLATFORM" = "windows" ]; then
+    unzip -q -o "$archive" -d "$dest"
+    if [ -d "$dest/falcon" ]; then
+      cp -r "$dest/falcon/"* "$dest/"
+      rm -rf "$dest/falcon"
+    fi
+  else
+    tar --strip-components=1 -xzf "$archive" -C "$dest"
+  fi
+}
+
 
 PACKAGE_URL="$RELEASE_URL/$PACKAGE_FILE"
 
@@ -85,7 +99,7 @@ if ! curl -fsSL "$PACKAGE_URL" -o "$TEMP_FILE"; then
 fi
 
 # Extract based on platform
-if ! $EXTRACT_CMD "$TEMP_FILE" -C "$INSTALL_DIR"; then
+if ! extract_package "$TEMP_FILE" "$INSTALL_DIR"; then
   echo "❌ Extraction failed"
   exit 1
 fi
@@ -94,25 +108,75 @@ echo "✅ Installation successful!"
 echo "📍 Location: $INSTALL_DIR"
 echo ""
 
-# Platform-specific next steps
+# Add to PATH
+echo "⚙️ Configuring PATH..."
+
 if [ "$PLATFORM" = "windows" ]; then
-  echo "📋 Next steps (PowerShell):"
-  echo ""
-  echo "  Add to PATH:"
-  echo "    \$env:PATH = \"$INSTALL_DIR\\bin;\" + \$env:PATH"
-  echo ""
-  echo "  Or add CMake prefix:"
-  echo "    \$env:CMAKE_PREFIX_PATH = \"$INSTALL_DIR\\lib\\cmake;\" + \$env:CMAKE_PREFIX_PATH"
+  # Speculate Windows path and add via PowerShell to avoid truncation
+  WIN_INSTALL_DIR="${INSTALL_DIR//\//\\}"
+  WIN_BIN_DIR="${WIN_INSTALL_DIR}\\bin"
+  
+  echo "🪟 Adding $WIN_BIN_DIR to Windows User PATH via PowerShell..."
+  if powershell.exe -Command "
+    \$binDir = '$WIN_BIN_DIR';
+    \$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');
+    if (\$currentPath -notlike '*'\$binDir'*') {
+      [Environment]::SetEnvironmentVariable('PATH', \$currentPath + ';\$binDir', 'User');
+      exit 0;
+    } else {
+      exit 1;
+    }
+  " 2>/dev/null; then
+    echo "✅ Added to Windows User PATH."
+    echo "ℹ️ Please restart your terminal for changes to take effect."
+  else
+    echo "ℹ️ $WIN_BIN_DIR is already in Windows User PATH."
+  fi
 else
-  echo "📋 Next steps:"
-  echo ""
-  echo "  Add to ~/.bashrc or ~/.zshrc:"
-  echo "    export PATH=\"$INSTALL_DIR/bin:\$PATH\""
-  echo "    export LD_LIBRARY_PATH=\"$INSTALL_DIR/lib:\$LD_LIBRARY_PATH\""
-  echo "    export PKG_CONFIG_PATH=\"$INSTALL_DIR/lib/pkgconfig:\$PKG_CONFIG_PATH\""
-  echo ""
-  echo "  Then reload:"
-  echo "    source ~/.bashrc"
+  # Linux/macOS
+  BIN_DIR="$INSTALL_DIR/bin"
+  
+  # Determine real user if running with sudo
+  REAL_USER="${SUDO_USER:-$USER}"
+  REAL_HOME="$(eval echo "~$REAL_USER")"
+  
+  # Detect shell
+  SHELL_NAME="$(basename "$SHELL")"
+  PROFILE_FILE=""
+  
+  case "$SHELL_NAME" in
+    bash)
+      if [ -f "$REAL_HOME/.bashrc" ]; then
+        PROFILE_FILE="$REAL_HOME/.bashrc"
+      elif [ -f "$REAL_HOME/.bash_profile" ]; then
+        PROFILE_FILE="$REAL_HOME/.bash_profile"
+      fi
+      ;;
+    zsh)
+      if [ -f "$REAL_HOME/.zshrc" ]; then
+        PROFILE_FILE="$REAL_HOME/.zshrc"
+      fi
+      ;;
+  esac
+  
+  if [ -z "$PROFILE_FILE" ]; then
+    PROFILE_FILE="$REAL_HOME/.profile"
+  fi
+  
+  echo "🐧 Adding $BIN_DIR to PATH in $PROFILE_FILE..."
+  
+  # Check if already present
+  if ! grep -q "$BIN_DIR" "$PROFILE_FILE" 2>/dev/null; then
+    echo "" >> "$PROFILE_FILE"
+    echo "# Falcon Toolchain" >> "$PROFILE_FILE"
+    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$PROFILE_FILE"
+    echo "export LD_LIBRARY_PATH=\"$INSTALL_DIR/lib:\$LD_LIBRARY_PATH\"" >> "$PROFILE_FILE"
+    echo "export PKG_CONFIG_PATH=\"$INSTALL_DIR/lib/pkgconfig:\$PKG_CONFIG_PATH\"" >> "$PROFILE_FILE"
+    echo "✅ Added to $PROFILE_FILE."
+    echo "ℹ️ Run 'source $PROFILE_FILE' to update your current session."
+  else
+    echo "ℹ️ $BIN_DIR is already in $PROFILE_FILE."
+  fi
 fi
 
 echo ""

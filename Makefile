@@ -115,6 +115,9 @@ help:
 # Docker & Database Configuration Targets
 # ==========================================
 
+RELEASE_VERSION ?= v1.0.0
+PACKAGE_DIR ?= $(CURDIR)/packaging/release
+
 DOCKER_IMAGE ?= falcon-cli:latest
 DOCKER_REGISTRY ?= ghcr.io
 DOCKER_REPO ?= falcon-autotuning/falcon
@@ -130,6 +133,30 @@ docker-build:
 	@echo "Building FAlCon Docker Image..."
 	docker build -t $(DOCKER_IMAGE) -f packaging/docker/Dockerfile .
 	@echo "✓ Docker image $(DOCKER_IMAGE) built successfully."
+
+package-release:
+	@echo "Packaging release artifacts for version $(RELEASE_VERSION)..."
+	mkdir -p $(PACKAGE_DIR)
+	
+	# Linux/Mac package
+	rm -rf $(PACKAGE_DIR)/linux
+	mkdir -p $(PACKAGE_DIR)/linux/falcon/bin
+	cp packaging/wrappers/linux_mac/*.sh $(PACKAGE_DIR)/linux/falcon/bin/
+	# Remove .sh extensions
+	for f in $(PACKAGE_DIR)/linux/falcon/bin/*.sh; do mv "$$f" "$${f%.sh}"; done
+	chmod +x $(PACKAGE_DIR)/linux/falcon/bin/*
+	tar -czf $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz -C $(PACKAGE_DIR)/linux falcon
+	rm -rf $(PACKAGE_DIR)/linux
+	
+	# Windows package
+	rm -rf $(PACKAGE_DIR)/windows
+	mkdir -p $(PACKAGE_DIR)/windows/falcon/bin
+	cp packaging/wrappers/windows/*.bat $(PACKAGE_DIR)/windows/falcon/bin/
+	cd $(PACKAGE_DIR)/windows && zip -r $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip falcon
+	rm -rf $(PACKAGE_DIR)/windows
+	
+	@echo "✓ Release packages created in $(PACKAGE_DIR):"
+	@ls -lh $(PACKAGE_DIR)
 
 docker-push:
 	@echo "Tagging and pushing $(DOCKER_IMAGE) to $(DOCKER_REGISTRY)..."
