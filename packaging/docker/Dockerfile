@@ -41,7 +41,7 @@ RUN which uv && uv --version
 # Install vcpkg
 ENV VCPKG_ROOT=/vcpkg
 RUN git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT && \
-    $VCPKG_ROOT/bootstrap-vcpkg.sh
+  $VCPKG_ROOT/bootstrap-vcpkg.sh
 
 # Build arguments for NuGet authentication
 ARG NUGET_FEED_URL
@@ -49,20 +49,12 @@ ARG NUGET_API_KEY
 
 # runs the make install-deps command that builds all of the dependencies
 ENV SUDO=""
-RUN if [ -n "$NUGET_API_KEY" ] && [ -n "$NUGET_FEED_URL" ]; then \
-      echo "Generating nuget.config for Azure DevOps authentication..."; \
-      printf '<?xml version="1.0" encoding="utf-8"?>\n<configuration>\n  <config>\n    <add key="defaultPushSource" value="cpp-cache" />\n  </config>\n  <packageSources>\n    <add key="cpp-cache" value="%s" />\n  </packageSources>\n  <packageSourceCredentials>\n    <cpp-cache>\n      <add key="Username" value="az" />\n      <add key="ClearTextPassword" value="%s" />\n    </cpp-cache>\n  </packageSourceCredentials>\n  <apikeys>\n    <add key="cpp-cache" value="AzureDevOps" />\n  </apikeys>\n</configuration>\n' "$NUGET_FEED_URL" "$NUGET_API_KEY" > $VCPKG_ROOT/nuget.config && \
-      export VCPKG_BINARY_SOURCES="clear;nugetconfig,$VCPKG_ROOT/nuget.config,readwrite"; \
-    elif [ -n "$NUGET_FEED_URL" ]; then \
-      export VCPKG_BINARY_SOURCES="clear;nuget,${NUGET_FEED_URL},readwrite"; \
-    fi && \
-    export GITHUB_TOKEN=${GITHUB_TOKEN} && \
-    make install-vcpkg-deps 
+RUN make install-vcpkg-deps 
 
 # runs the make install command that builds the current package and installs it to /opt/falcon/
 RUN make install && \
-    mv /opt/falcon /opt/falcon-seed && \
-    mkdir -p /opt/falcon
+  mv /opt/falcon /opt/falcon-seed && \
+  mkdir -p /opt/falcon
 
 # Set the environment variables
 ENV PATH="/opt/falcon/bin:/opt/falcon/lib:${PATH}"

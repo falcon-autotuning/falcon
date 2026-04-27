@@ -14,61 +14,88 @@ PREFIX ?= /opt/falcon
 LIBDIR := $(PREFIX)/lib
 INCLUDEDIR := $(PREFIX)/include
 
+# Detect OS
+UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-  VCPKG_TRIPLET ?= x64-linux-dynamic
-	TMPDIR = /tmp/falcon-core-install
-	SUDO ?= sudo
-  ARCHIVE_CPP = falcon-core-cpp-linux-x64.tar.gz
-  ARCHIVE_CPP_SHA = falcon-core-cpp-linux-x64.tar.gz.sha256
-  ARCHIVE_CAPI = falcon-core-c-api-linux-x64.tar.gz
-  ARCHIVE_CAPI_SHA = falcon-core-c-api-linux-x64.tar.gz.sha256
-  EXTRACT_CPP = tar -xzf $(TMPDIR)/$(ARCHIVE_CPP) -C $(TMPDIR)/cpp
-  EXTRACT_CAPI = tar -xzf $(TMPDIR)/$(ARCHIVE_CAPI) -C $(TMPDIR)/c_api
-  EXTRACT_LSP = tar -xvf $(TMPDIR)/$(ARCHIVE_LSP) -C $(TMPDIR)/lsp
-  LIBSUBDIR = lib/
-
+    PLATFORM := linux
+    CMAKE_GENERATOR := Ninja
+    VCPKG_TRIPLET ?= x64-linux-dynamic
+    NPROC := $(shell nproc 2>/dev/null || echo 4)
+    SUDO ?= sudo
+		export CC=clang
+		export CXX=clang++
 endif
 ifeq ($(OS),Windows_NT)
+    PLATFORM := windows
+    CMAKE_GENERATOR := "Visual Studio 17 2022"
     VCPKG_TRIPLET ?= x64-windows
+    NPROC := 4
+SUDO := 
+endif
 
-  TMPDIR = $(USERPROFILE)/AppData/Local/Temp/falcon-core-install
-  SUDO =
-	ARCHIVE_CPP = falcon-core-cpp-windows-x64.zip
-  ARCHIVE_CPP_SHA := $(shell echo falcon-core-cpp-windows-x64.zip.sha256 | tr -d '\r')
-  ARCHIVE_CAPI = falcon-core-c-api-windows-x64.zip
-  ARCHIVE_CAPI_SHA := $(shell echo falcon-core-c-api-windows-x64.zip.sha256 | tr -d '\r')
-  EXTRACT_CPP = unzip -o $(TMPDIR)/$(ARCHIVE_CPP) -d $(TMPDIR)/cpp
-  EXTRACT_CAPI = unzip -o $(TMPDIR)/$(ARCHIVE_CAPI) -d $(TMPDIR)/c_api
-  LIBSUBDIR = bin/
+ENV_FILE := .nuget-credentials
+ifeq ($(wildcard $(ENV_FILE)),)
+  $(info [Makefile] $(ENV_FILE) not found, skipping environment sourcing)
+else
+  include $(ENV_FILE)
+  export $(shell sed 's/=.*//' $(ENV_FILE) | xargs)
+  $(info [Makefile] Loaded environment from $(ENV_FILE))
+endif
+# ── Paths ─────────────────────────────────────────────────────────────────────
+VCPKG_ROOT ?= $(CURDIR)/vcpkg
+VCPKG_TOOLCHAIN ?= $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
+VCPKG_INSTALLED_DIR ?= $(CURDIR)/vcpkg_installed
+FEED_URL ?= 
+NUGET_API_KEY ?=
+FEED_NAME ?= 
+USERNAME ?=
+VCPKG_BINARY_SOURCES ?= ""
+ifeq ($(strip $(FEED_URL)),)
+  CMAKE_VCPKG_BINARY_SOURCES :=
+else
+	VCPKG_BINARY_SOURCES := "clear;nuget,$(FEED_URL),readwrite"
+  CMAKE_VCPKG_BINARY_SOURCES := -DVCPKG_BINARY_SOURCES=$(VCPKG_BINARY_SOURCES)
+endif
+LINKER_FLAGS ?=
+ifeq ($(PLATFORM),linux)
+	LINKER_FLAGS := -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld"
 endif
 
 all: build-all
 
-deps:
+.PHONY: vcpkg-bootstrap
+vcpkg-bootstrap:
 	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
-		echo "Installing vcpkg to $(VCPKG_ROOT)..."; \
+		echo "Cloning vcpkg..."; \
 		git clone https://github.com/microsoft/vcpkg.git $(VCPKG_ROOT); \
-		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh; \
-	else \
-		echo "vcpkg already installed at $(VCPKG_ROOT)"; \
-		cd $(VCPKG_ROOT) && git pull; \
 	fi
-	@echo "✓ vcpkg ready"
+	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ]; then \
+		echo "Bootstrapping vcpkg..."; \
+		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh; \
+	fi
 
-install-vcpkg-deps: 
-	@echo "Installing vcpkg dependencies..."
-	@if [ ! -z "$(NUGET_API_KEY)" ] && [ ! -z "$(NUGET_FEED_URL)" ]; then \
-		echo "Generating temporary nuget.config for binary caching..."; \
-		printf '<?xml version="1.0" encoding="utf-8"?>\n<configuration>\n  <config>\n    <add key="defaultPushSource" value="cpp-cache" />\n  </config>\n  <packageSources>\n    <add key="cpp-cache" value="%s" />\n  </packageSources>\n  <packageSourceCredentials>\n    <cpp-cache>\n      <add key="Username" value="az" />\n      <add key="ClearTextPassword" value="%s" />\n    </cpp-cache>\n  </packageSourceCredentials>\n  <apikeys>\n    <add key="cpp-cache" value="AzureDevOps" />\n  </apikeys>\n</configuration>\n' "$(NUGET_FEED_URL)" "$(NUGET_API_KEY)" > $(VCPKG_ROOT)/nuget.config; \
-		export VCPKG_BINARY_SOURCES="clear;nugetconfig,$(VCPKG_ROOT)/nuget.config,readwrite"; \
-	elif [ ! -z "$(VCPKG_BINARY_SOURCES)" ]; then \
-		echo "Using binary sources: $(VCPKG_BINARY_SOURCES)"; \
-	fi && \
-	CC=clang CXX=clang++ MAKELEVEL=0 $(VCPKG_ROOT)/vcpkg install --triplet $(VCPKG_TRIPLET) --overlay-ports=./ports
-	@echo "Patching cereal install..."
-	$(SUDO) mkdir -p $(INCLUDEDIR)/cereal/types
-	$(SUDO) cp $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/cereal-xtensor/types/xtensor.hpp $(INCLUDEDIR)/cereal/types/xtensor.hpp
-	@echo "✓ vcpkg dependencies installed"
+setup-nuget-auth:
+	@if [ -z "$$NUGET_API_KEY" ]; then \
+		echo "No NUGET_API_KEY found, skipping NuGet setup (local-only build, no binary cache)."; \
+		exit 0; \
+	fi
+	@echo "Setting up NuGet authentication for vcpkg binary caching..."
+	@if ! command -v mono >/dev/null 2>&1; then \
+		echo "Error: mono is not installed. Please install mono (e.g., 'sudo pacman -S mono' on Arch, 'sudo apt install mono-complete' on Ubuntu)."; \
+		exit 1; \
+	fi
+	@NUGET_EXE=$$(vcpkg fetch nuget | tail -n1); \
+	mono "$$NUGET_EXE" sources remove -Name "$(FEED_NAME)" || true; \
+	mono "$$NUGET_EXE" sources add -Name "$(FEED_NAME)" -Source "$(FEED_URL)" -Username "$(USERNAME)" -Password "$(NUGET_API_KEY)"
+
+.PHONY: vcpkg-install-deps
+vcpkg-install-deps: setup-nuget-auth 
+	@echo "Installing vcpkg dependencies" 
+	VCPKG_FEATURE_FLAGS=binarycaching MAKELEVEL=0 \
+		$(VCPKG_ROOT)/vcpkg install \
+		--overlay-ports=ports \
+		--binarysource=$(VCPKG_BINARY_SOURCES) \
+		--triplet="$(VCPKG_TRIPLET)"
 
 install: install-libs
 	@echo "Installing falcon metapackage wrapper..."
@@ -118,7 +145,7 @@ help:
 RELEASE_VERSION ?= v1.1.0
 PACKAGE_DIR ?= $(CURDIR)/packaging/release
 
-DOCKER_IMAGE ?= falcon-cli:latest
+DOCKER_IMAGE ?= falcon:latest
 DOCKER_REGISTRY ?= ghcr.io
 DOCKER_REPO ?= falcon-autotuning/falcon
 DOCKER_TAG ?= latest
