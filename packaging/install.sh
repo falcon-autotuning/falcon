@@ -62,7 +62,7 @@ extract_package() {
       rm -rf "$dest/falcon"
     fi
   else
-    tar --strip-components=1 -xzf "$archive" -C "$dest"
+    tar --overwrite --strip-components=1 -xzf "$archive" -C "$dest"
   fi
 }
 
@@ -77,6 +77,17 @@ echo "📍 Installation Directory: $INSTALL_DIR"
 echo "📦 Platform: $([ "$PLATFORM" = "windows" ] && echo "Windows" || echo "Linux")"
 echo "📥 Package: $PACKAGE_FILE"
 echo ""
+
+# Check permissions early for Linux/Mac
+if [ "$PLATFORM" != "windows" ] && [ "$EUID" -ne 0 ]; then
+  if [ -d "$INSTALL_DIR" ] && [ ! -w "$INSTALL_DIR" ]; then
+    echo "❌ Permission denied. Please run with 'sudo' to install to $INSTALL_DIR"
+    exit 1
+  elif [ ! -d "$INSTALL_DIR" ] && [ ! -w "$(dirname "$INSTALL_DIR")" ]; then
+    echo "❌ Permission denied. Please run with 'sudo' to install to $INSTALL_DIR"
+    exit 1
+  fi
+fi
 
 # Create install directory
 mkdir -p "$INSTALL_DIR" || {
