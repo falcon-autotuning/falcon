@@ -115,7 +115,7 @@ help:
 # Docker & Database Configuration Targets
 # ==========================================
 
-RELEASE_VERSION ?= v1.0.0
+RELEASE_VERSION ?= v1.1.0
 PACKAGE_DIR ?= $(CURDIR)/packaging/release
 
 DOCKER_IMAGE ?= falcon-cli:latest

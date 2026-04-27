@@ -12,7 +12,7 @@
 set -euo pipefail
 
 # Configuration
-RELEASE_VERSION="${1:-v1.0.0}"
+RELEASE_VERSION="${1:-v1.1.0}"
 REPO_OWNER="falcon-autotuning"
 REPO_NAME="falcon"
 RELEASE_URL="${FALCON_RELEASE_URL:-https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION}"
