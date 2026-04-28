@@ -13,5 +13,4 @@ vcpkg_cmake_config_fixup()
 file(INSTALL "${SOURCE_PATH}/LICENSE"
      DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}"
      RENAME copyright)
-vcpkg_copy_tools(TOOL_NAMES falcon-run falcon-test AUTO_CLEAN)
 vcpkg_copy_pdbs()
