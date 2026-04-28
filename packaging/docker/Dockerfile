@@ -38,18 +38,9 @@ WORKDIR /src
 # Verify uv is available
 RUN which uv && uv --version
 
-# Install vcpkg
-ENV VCPKG_ROOT=/vcpkg
-RUN git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT && \
-  $VCPKG_ROOT/bootstrap-vcpkg.sh
-
-# Build arguments for NuGet authentication
-ARG NUGET_FEED_URL
-ARG NUGET_API_KEY
-
 # runs the make install-deps command that builds all of the dependencies
 ENV SUDO=""
-RUN make install-vcpkg-deps 
+RUN make check-vcpkg
 
 # runs the make install command that builds the current package and installs it to /opt/falcon/
 RUN make install && \
@@ -57,10 +48,11 @@ RUN make install && \
   mkdir -p /opt/falcon
 
 # Set the environment variables
-ENV PATH="/opt/falcon/bin:/opt/falcon/lib:${PATH}"
-ENV LD_LIBRARY_PATH="/opt/falcon/lib"
-ENV PKG_CONFIG_PATH="/opt/falcon/lib/pkgconfig"
+ENV PATH="/opt/falcon/bin:${PATH}" \
+  LD_LIBRARY_PATH="/opt/falcon/lib:${LD_LIBRARY_PATH:-}" \
+  PKG_CONFIG_PATH="/opt/falcon/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 
+RUN ls -lR /opt/falcon
 # Run the DSL smoke test to ensure the environment is functional
 RUN /bin/bash /src/packaging/docker/run-smoke-test.sh
 
@@ -68,4 +60,4 @@ RUN /bin/bash /src/packaging/docker/run-smoke-test.sh
 COPY packaging/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

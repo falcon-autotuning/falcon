@@ -53,12 +53,16 @@ VCPKG_BINARY_SOURCES ?= ""
 ifeq ($(strip $(FEED_URL)),)
   CMAKE_VCPKG_BINARY_SOURCES :=
 else
-	VCPKG_BINARY_SOURCES := "clear;nuget,$(FEED_URL),readwrite"
+	VCPKG_BINARY_SOURCES := "nuget,$(FEED_URL),readwrite"
   CMAKE_VCPKG_BINARY_SOURCES := -DVCPKG_BINARY_SOURCES=$(VCPKG_BINARY_SOURCES)
 endif
 LINKER_FLAGS ?=
 ifeq ($(PLATFORM),linux)
 	LINKER_FLAGS := -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld"
+endif
+VCPKG_OVERLAY_TRIPS ?=
+ifeq ($(PLATFORM),windows)
+	VCPKG_OVERLAY_TRIPS := -DVCPKG_OVERLAY_TRIPLETS=../../my-vcpkg-triplets
 endif
 
 all: build-all
@@ -69,33 +73,63 @@ vcpkg-bootstrap:
 		echo "Cloning vcpkg..."; \
 		git clone https://github.com/microsoft/vcpkg.git $(VCPKG_ROOT); \
 	fi
-	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ]; then \
+	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ] && [ ! -f "$(VCPKG_ROOT)/vcpkg.exe" ]; then \
 		echo "Bootstrapping vcpkg..."; \
-		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh; \
+		UNAME="$$(uname -s 2>/dev/null || echo Unknown)"; \
+		if echo "$$UNAME" | grep -i -q 'mingw\|msys\|cygwin'; then \
+			echo "Detected Windows bash environment ($$UNAME). Using cmd.exe to launch bootstrap-vcpkg.bat"; \
+			BAT_PATH="$$(cygpath -w "$(VCPKG_ROOT)/bootstrap-vcpkg.bat")"; \
+			cmd.exe //C "$$BAT_PATH"; \
+			git clone https://github.com/Neumann-A/my-vcpkg-triplets.git || true; \
+		else \
+			echo "Detected Unix environment ($$UNAME). Using bootstrap-vcpkg.sh"; \
+			cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh; \
+		fi \
 	fi
 
 setup-nuget-auth:
 	@if [ -z "$$NUGET_API_KEY" ]; then \
-		echo "No NUGET_API_KEY found, skipping NuGet setup (local-only build, no binary cache)."; \
+		echo "No .nuget_api_key or NUGET_API_KEY found, skipping NuGet setup (local-only build, no binary cache)."; \
 		exit 0; \
 	fi
 	@echo "Setting up NuGet authentication for vcpkg binary caching..."
-	@if ! command -v mono >/dev/null 2>&1; then \
-		echo "Error: mono is not installed. Please install mono (e.g., 'sudo pacman -S mono' on Arch, 'sudo apt install mono-complete' on Ubuntu)."; \
-		exit 1; \
+	@if [ "$$(uname -s 2>/dev/null)" != "Windows_NT" ] && [ "$$(uname -o 2>/dev/null)" != "Msys" ] && [ "$$(uname -o 2>/dev/null)" != "Cygwin" ]; then \
+		if ! command -v mono >/dev/null 2>&1; then \
+			echo "Error: mono is not installed. Please install mono (e.g., 'sudo pacman -S mono' on Arch, 'sudo apt install mono-complete' on Ubuntu)."; \
+			exit 1; \
+		fi; \
 	fi
-	@NUGET_EXE=$$(vcpkg fetch nuget | tail -n1); \
-	mono "$$NUGET_EXE" sources remove -Name "$(FEED_NAME)" || true; \
-	mono "$$NUGET_EXE" sources add -Name "$(FEED_NAME)" -Source "$(FEED_URL)" -Username "$(USERNAME)" -Password "$(NUGET_API_KEY)"
+	@NUGET_EXE=$$($(VCPKG_ROOT)/vcpkg fetch nuget | tail -n1); \
+	if [ "$$(uname -s 2>/dev/null)" = "Linux" ]; then \
+		MONO_PREFIX="mono "; \
+	else \
+		MONO_PREFIX=""; \
+	fi; \
+	$$MONO_PREFIX"$$NUGET_EXE" sources remove -Name "$(FEED_NAME)" || true; \
+	$$MONO_PREFIX"$$NUGET_EXE" sources add -Name "$(FEED_NAME)" -Source "$(FEED_URL)" -Username "$(USERNAME)" -Password "$(NUGET_API_KEY)";
 
 .PHONY: vcpkg-install-deps
 vcpkg-install-deps: setup-nuget-auth 
 	@echo "Installing vcpkg dependencies" 
-	VCPKG_FEATURE_FLAGS=binarycaching MAKELEVEL=0 \
+	VCPKG_FEATURE_FLAGS=binarycaching VCPKG_OVERLAY_TRIPLETS=my-vcpkg-triplets MAKELEVEL=0 \
 		$(VCPKG_ROOT)/vcpkg install \
 		--overlay-ports=ports \
-		--binarysource=$(VCPKG_BINARY_SOURCES) \
-		--triplet="$(VCPKG_TRIPLET)"
+		--binarysource="$(VCPKG_BINARY_SOURCES)" \
+		--triplet="$(VCPKG_TRIPLET)" \
+		--vcpkg-root="$(VCPKG_ROOT)"
+
+check-vcpkg: vcpkg-bootstrap  vcpkg-install-deps
+	@echo "Checking vcpkg configuration..."
+	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
+		echo "Error: vcpkg not found at $(VCPKG_ROOT)"; \
+		echo "Run 'make deps' in the parent directory first"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(VCPKG_TOOLCHAIN)" ]; then \
+		echo "Error: vcpkg toolchain not found at $(VCPKG_TOOLCHAIN)"; \
+		exit 1; \
+	fi
+	@echo "✓ vcpkg configuration OK"
 
 install: install-libs
 	@echo "Installing falcon metapackage wrapper..."
@@ -145,10 +179,10 @@ help:
 RELEASE_VERSION ?= v1.1.0
 PACKAGE_DIR ?= $(CURDIR)/packaging/release
 
-DOCKER_IMAGE ?= falcon:latest
 DOCKER_REGISTRY ?= ghcr.io
 DOCKER_REPO ?= falcon-autotuning/falcon
 DOCKER_TAG ?= latest
+DOCKER_IMAGE ?= falcon:$(DOCKER_TAG)
 DB_CONTAINER_NAME ?= falcon-postgres
 DB_PORT ?= 5432
 CONFIG_VOLUME ?= falcon-config
