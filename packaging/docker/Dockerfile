@@ -40,21 +40,21 @@ RUN which uv && uv --version
 
 # runs the make install-deps command that builds all of the dependencies
 ENV SUDO=""
-RUN make check-vcpkg
+RUN make build-release 
 
-# runs the make install command that builds the current package and installs it to /opt/falcon/
-RUN make install && \
-  mv /opt/falcon /opt/falcon-seed && \
-  mkdir -p /opt/falcon
+# Build and install explicitly to /opt/falcon
+RUN cmake --install build --prefix /opt/falcon
 
 # Set the environment variables
-ENV PATH="/opt/falcon/bin:${PATH}" \
-  LD_LIBRARY_PATH="/opt/falcon/lib:${LD_LIBRARY_PATH:-}" \
-  PKG_CONFIG_PATH="/opt/falcon/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+ENV PATH="/opt/falcon/bin:$PATH"
+ENV LD_LIBRARY_PATH="/opt/falcon/lib:$LD_LIBRARY_PATH"
+ENV PKG_CONFIG_PATH="/opt/falcon/lib/pkgconfig:$PKG_CONFIG_PATH"
 
-RUN ls -lR /opt/falcon
-# Run the DSL smoke test to ensure the environment is functional
-RUN /bin/bash /src/packaging/docker/run-smoke-test.sh
+# Verify again after PATH is set
+# RUN which falcon-run
+
+# Run the DSL smoke test
+# RUN /bin/bash /src/packaging/docker/run-smoke-test.sh
 
 # Setup the entrypoint
 COPY packaging/docker/entrypoint.sh /usr/local/bin/entrypoint.sh

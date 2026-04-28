@@ -53,8 +53,8 @@ VCPKG_BINARY_SOURCES ?= ""
 ifeq ($(strip $(FEED_URL)),)
   CMAKE_VCPKG_BINARY_SOURCES :=
 else
-	VCPKG_BINARY_SOURCES := "nuget,$(FEED_URL),readwrite"
-  CMAKE_VCPKG_BINARY_SOURCES := -DVCPKG_BINARY_SOURCES=$(VCPKG_BINARY_SOURCES)
+	VCPKG_BINARY_SOURCES := nuget,$(FEED_URL),readwrite
+  CMAKE_VCPKG_BINARY_SOURCES := -DVCPKG_BINARY_SOURCES="$(VCPKG_BINARY_SOURCES)"
 endif
 LINKER_FLAGS ?=
 ifeq ($(PLATFORM),linux)
@@ -64,6 +64,8 @@ VCPKG_OVERLAY_TRIPS ?=
 ifeq ($(PLATFORM),windows)
 	VCPKG_OVERLAY_TRIPS := -DVCPKG_OVERLAY_TRIPLETS=../../my-vcpkg-triplets
 endif
+
+BUILD_DIR := build
 
 all: build-all
 
@@ -145,10 +147,59 @@ install-libs:
 	$(SUDO) cp -r $(CURDIR)/libs/* $(PREFIX)/packages/
 	@echo "✓ Standard libraries installed."
 
+configure-debug : check-vcpkg
+	@echo "Configuring debug build..."
+	@mkdir -p $(BUILD_DIR)
+	cd $(BUILD_DIR) && cmake .. \
+		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_TOOLCHAIN) \
+		-DVCPKG_INSTALLED_DIR=$(VCPKG_INSTALLED_DIR) \
+		$(VCPKG_OVERLAY_TRIPS) \
+		-DVCPKG_TARGET_TRIPLET=$(VCPKG_TRIPLET) \
+		-DBUILD_TESTS=ON \
+		-DUSE_CCACHE=ON \
+		-DENABLE_PCH=ON \
+		-DCMAKE_C_COMPILER=$(CC) \
+		-DCMAKE_CXX_COMPILER=$(CXX) \
+		$(CMAKE_VCPKG_BINARY_SOURCES) \
+		$(LINKER_FLAGS) \
+		-DVCPKG_OVERLAY_PORTS=../ports \
+		-G $(CMAKE_GENERATOR)
+	@echo "✓ Build configured"
+
+configure-release: check-vcpkg
+	@echo "Configuring debug build..."
+	@mkdir -p $(BUILD_DIR)
+	cd $(BUILD_DIR) && cmake .. \
+		-DCMAKE_BUILD_TYPE=Release\
+		-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_TOOLCHAIN) \
+		-DVCPKG_INSTALLED_DIR=$(VCPKG_INSTALLED_DIR) \
+		$(VCPKG_OVERLAY_TRIPS) \
+		-DVCPKG_TARGET_TRIPLET=$(VCPKG_TRIPLET) \
+		-DUSE_CCACHE=ON \
+		-DENABLE_PCH=ON \
+		-DCMAKE_C_COMPILER=$(CC) \
+		-DCMAKE_CXX_COMPILER=$(CXX) \
+		$(CMAKE_VCPKG_BINARY_SOURCES) \
+		$(LINKER_FLAGS) \
+		-DVCPKG_OVERLAY_PORTS=../ports \
+		-G $(CMAKE_GENERATOR)
+	@echo "✓ Build configured"
+
+build-debug: configure-debug
+	@echo "Building debug..."
+	cmake --build $(BUILD_DIR) -- -j$(NPROC)
+	@echo "✓ Debug build complete"
+	@$(MAKE) clangd-helpers
+
+build-release: configure-release
+	@echo "Building debug..."
+	cmake --build $(BUILD_DIR) -- -j$(NPROC)
+	@echo "✓ Debug build complete"
+
 clean:
-	@echo "Cleaning all components..."
-	rm -rf $(VCPKG_ROOT)
-	rm -rf ./vcpkg_installed/
+	@echo "Cleaning build artifacts and test containers..."
+	rm -rf $(BUILD_DIR) build/ compile_commands.json ./vcpkg_installed/
 	@echo "✓ Clean complete"
 
 help:

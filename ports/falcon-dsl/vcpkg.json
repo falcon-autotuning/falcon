@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.json.schema.json",
   "name": "falcon-dsl",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "The Domain-Specific Language (DSL) library for the Falcon autotuning framework, providing core components and utilities for defining and working with DSLs in the Falcon ecosystem.",
   "homepage": "https://github.com/falcon-autotuning/falcon-dsl",
   "license": "MPL-2.0",
@@ -28,7 +28,7 @@
     },
     {
       "name": "falcon-package-manager",
-      "version>=": "1.0.2"
+      "version>=": "1.0.3"
     },
     {
       "name": "openssl"
