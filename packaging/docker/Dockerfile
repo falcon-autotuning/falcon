@@ -55,6 +55,7 @@ RUN make build-release && \
 FROM ubuntu:24.04 AS release
 # Copy installed binaries and libraries from builder
 COPY --from=builder /opt/falcon /opt/falcon
+COPY --from=builder /opt/falcon /opt/falcon-seed
 RUN apt-get update && apt-get install -y \
   clang \
   git \
