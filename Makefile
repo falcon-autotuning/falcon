@@ -252,10 +252,12 @@ package-release:
 	
 	# Linux/Mac package
 	rm -rf $(PACKAGE_DIR)/linux
-	mkdir -p $(PACKAGE_DIR)/linux/falcon/bin
+	mkdir -p $(PACKAGE_DIR)/linux/falcon
+	# Extract toolchain from Docker image
+	docker run --rm falcon:latest tar -C /opt/falcon -cf - . | tar -C $(PACKAGE_DIR)/linux/falcon -xf -
+	# Copy wrappers over binaries (overwriting them with host wrappers)
 	cp packaging/wrappers/linux_mac/*.sh $(PACKAGE_DIR)/linux/falcon/bin/
-	# Remove .sh extensions
-	for f in $(PACKAGE_DIR)/linux/falcon/bin/*.sh; do mv "$$f" "$${f%.sh}"; done
+	for f in $(PACKAGE_DIR)/linux/falcon/bin/*.sh; do [ -f "$$f" ] && mv "$$f" "$${f%.sh}" || true; done
 	chmod +x $(PACKAGE_DIR)/linux/falcon/bin/*
 	tar -czf $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz -C $(PACKAGE_DIR)/linux falcon
 	rm -rf $(PACKAGE_DIR)/linux

@@ -181,42 +181,26 @@ else
   REAL_USER="${SUDO_USER:-$USER}"
   REAL_HOME="$(eval echo "~$REAL_USER")"
   
-  # Detect shell
-  SHELL_NAME="$(basename "$SHELL")"
-  PROFILE_FILE=""
+  # Add to all detected profile files for robustness
+  updated=0
   
-  case "$SHELL_NAME" in
-    bash)
-      if [ -f "$REAL_HOME/.bashrc" ]; then
-        PROFILE_FILE="$REAL_HOME/.bashrc"
-      elif [ -f "$REAL_HOME/.bash_profile" ]; then
-        PROFILE_FILE="$REAL_HOME/.bash_profile"
+  for profile in "$REAL_HOME/.bashrc" "$REAL_HOME/.zshrc" "$REAL_HOME/.bash_profile" "$REAL_HOME/.profile"; do
+    if [ -f "$profile" ]; then
+      echo "🐧 Adding $BIN_DIR to PATH in $profile..."
+      if ! grep -q "$BIN_DIR" "$profile" 2>/dev/null; then
+        echo "" >> "$profile"
+        echo "# Falcon Toolchain" >> "$profile"
+        echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$profile"
+        echo "✅ Added to $profile."
+        updated=1
+      else
+        echo "ℹ️ $BIN_DIR is already in $profile."
       fi
-      ;;
-    zsh)
-      if [ -f "$REAL_HOME/.zshrc" ]; then
-        PROFILE_FILE="$REAL_HOME/.zshrc"
-      fi
-      ;;
-  esac
+    fi
+  done
   
-  if [ -z "$PROFILE_FILE" ]; then
-    PROFILE_FILE="$REAL_HOME/.profile"
-  fi
-  
-  echo "🐧 Adding $BIN_DIR to PATH in $PROFILE_FILE..."
-  
-  # Check if already present
-  if ! grep -q "$BIN_DIR" "$PROFILE_FILE" 2>/dev/null; then
-    echo "" >> "$PROFILE_FILE"
-    echo "# Falcon Toolchain" >> "$PROFILE_FILE"
-    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$PROFILE_FILE"
-    echo "export LD_LIBRARY_PATH=\"$INSTALL_DIR/lib:\$LD_LIBRARY_PATH\"" >> "$PROFILE_FILE"
-    echo "export PKG_CONFIG_PATH=\"$INSTALL_DIR/lib/pkgconfig:\$PKG_CONFIG_PATH\"" >> "$PROFILE_FILE"
-    echo "✅ Added to $PROFILE_FILE."
-    echo "ℹ️ Run 'source $PROFILE_FILE' to update your current session."
-  else
-    echo "ℹ️ $BIN_DIR is already in $PROFILE_FILE."
+  if [ "$updated" -eq 1 ]; then
+    echo "ℹ️ Please restart your terminal or source your profile file for changes to take effect."
   fi
 fi
 

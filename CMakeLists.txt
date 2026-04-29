@@ -123,14 +123,12 @@ if(WIN32)
     FILES ${WIN_LIBS}
     DESTINATION "${INSTALL_LIB_DIR}"
   )
-  file(GLOB_RECURSE WIN_INCLUDES "${VCPKG_INSTALLED_DIR}/x64-win-llvm/include/*")
   install(
-    FILES ${WIN_INCLUDES}
+    DIRECTORY "${VCPKG_INSTALLED_DIR}/x64-win-llvm/include/"
     DESTINATION "${INSTALL_INCLUDE_DIR}"
   )
-  file(GLOB_RECURSE WIN_SHARE "${VCPKG_INSTALLED_DIR}/x64-win-llvm/share/*")
   install(
-    FILES ${WIN_SHARE}
+    DIRECTORY "${VCPKG_INSTALLED_DIR}/x64-win-llvm/share/"
     DESTINATION "${INSTALL_SHARE_DIR}"
   )
 else()
@@ -145,14 +143,12 @@ else()
     FILES ${LINUX_LIBS_A} ${LINUX_LIBS_SO}
     DESTINATION "${INSTALL_LIB_DIR}"
   )
-  file(GLOB_RECURSE LINUX_INCLUDES "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/include/*")
   install(
-    FILES ${LINUX_INCLUDES}
+    DIRECTORY "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/include/"
     DESTINATION "${INSTALL_INCLUDE_DIR}"
   )
-  file(GLOB_RECURSE LINUX_SHARE "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/share/*")
   install(
-    FILES ${LINUX_SHARE}
+    DIRECTORY "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/share/"
     DESTINATION "${INSTALL_SHARE_DIR}"
   )
 endif()

@@ -21,11 +21,11 @@ fi
 rel_path=$(python3 -c "import os; print(os.path.relpath('$(pwd)', '$project_root'))")
 
 # Ensure host persistence directory exists
-mkdir -p "$HOME/.falcon/opt"
-
 docker run -it --rm \
   -v "$project_root:/workspace" \
-  -v "$HOME/.falcon/opt:/opt/falcon" \
+  -v "/opt/falcon/lib:/opt/falcon/lib" \
+  -v "/opt/falcon/include:/opt/falcon/include" \
+  -v "/opt/falcon/share:/opt/falcon/share" \
   -v falcon-config:/config:ro \
   -u "$(id -u):$(id -g)" \
   -w "/workspace/$rel_path" \
