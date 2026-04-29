@@ -6,4 +6,4 @@ docker run -it --rm ^
     -v falcon-config:/config:ro ^
     -w /workspace ^
     -e NATS_URL="%NATS_URL%" ^
-    ghcr.io/falcon-autotuning/falcon:1.1.0 falcon-pm %*
+    falcon:latest falcon-pm %*

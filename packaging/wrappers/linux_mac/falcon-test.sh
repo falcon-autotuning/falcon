@@ -27,4 +27,4 @@ docker run -it --rm \
   -u "$(id -u):$(id -g)" \
   -w "/workspace/$rel_path" \
   -e FALCON_DATABASE_URL="$FALCON_DATABASE_URL" \
-  ghcr.io/falcon-autotuning/falcon:1.1.0 falcon-test "$@"
+  falcon:latest falcon-test "$@"
