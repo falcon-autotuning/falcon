@@ -92,23 +92,23 @@ vcpkg-bootstrap:
 setup-nuget-auth:
 	@if [ -z "$$NUGET_API_KEY" ]; then \
 		echo "No .nuget_api_key or NUGET_API_KEY found, skipping NuGet setup (local-only build, no binary cache)."; \
-		exit 0; \
-	fi
-	@echo "Setting up NuGet authentication for vcpkg binary caching..."
-	@if [ "$$(uname -s 2>/dev/null)" != "Windows_NT" ] && [ "$$(uname -o 2>/dev/null)" != "Msys" ] && [ "$$(uname -o 2>/dev/null)" != "Cygwin" ]; then \
-		if ! command -v mono >/dev/null 2>&1; then \
-			echo "Error: mono is not installed. Please install mono (e.g., 'sudo pacman -S mono' on Arch, 'sudo apt install mono-complete' on Ubuntu)."; \
-			exit 1; \
-		fi; \
-	fi
-	@NUGET_EXE=$$($(VCPKG_ROOT)/vcpkg fetch nuget | tail -n1); \
-	if [ "$$(uname -s 2>/dev/null)" = "Linux" ]; then \
-		MONO_PREFIX="mono "; \
 	else \
-		MONO_PREFIX=""; \
-	fi; \
-	$$MONO_PREFIX"$$NUGET_EXE" sources remove -Name "$(FEED_NAME)" || true; \
-	$$MONO_PREFIX"$$NUGET_EXE" sources add -Name "$(FEED_NAME)" -Source "$(FEED_URL)" -Username "$(USERNAME)" -Password "$(NUGET_API_KEY)";
+		echo "Setting up NuGet authentication for vcpkg binary caching..."; \
+		if [ "$$(uname -s 2>/dev/null)" != "Windows_NT" ] && [ "$$(uname -o 2>/dev/null)" != "Msys" ] && [ "$$(uname -o 2>/dev/null)" != "Cygwin" ]; then \
+			if ! command -v mono >/dev/null 2>&1; then \
+				echo "Error: mono is not installed. Please install mono (e.g., 'sudo apt install mono-complete' on Ubuntu)."; \
+				exit 1; \
+			fi; \
+		fi; \
+		NUGET_EXE=$$($(VCPKG_ROOT)/vcpkg fetch nuget | tail -n1); \
+		if [ "$$(uname -s 2>/dev/null)" = "Linux" ]; then \
+			MONO_PREFIX="mono "; \
+		else \
+			MONO_PREFIX=""; \
+		fi; \
+		$$MONO_PREFIX"$$NUGET_EXE" sources remove -Name "$(FEED_NAME)" || true; \
+		$$MONO_PREFIX"$$NUGET_EXE" sources add -Name "$(FEED_NAME)" -Source "$(FEED_URL)" -Username "$(USERNAME)" -Password "$(NUGET_API_KEY)"; \
+	fi
 
 .PHONY: vcpkg-install-deps
 vcpkg-install-deps: setup-nuget-auth 
