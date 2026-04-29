@@ -274,6 +274,15 @@ package-release:
 	@echo "✓ Release packages created in $(PACKAGE_DIR):"
 	@ls -lh $(PACKAGE_DIR)
 
+publish-release: package-release
+	@echo "Publishing release artifacts to GitHub for version $(RELEASE_VERSION)..."
+	gh release create $(RELEASE_VERSION) --title "Falcon $(RELEASE_VERSION)" --notes "Release $(RELEASE_VERSION)" || true
+	gh release upload $(RELEASE_VERSION) \
+		$(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz \
+		$(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip \
+		$(PACKAGE_DIR)/falcon-cli-image.tar.gz \
+		--clobber
+
 docker-push:
 	@echo "Tagging and pushing $(DOCKER_IMAGE) to $(DOCKER_REGISTRY)..."
 	docker tag $(DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)
