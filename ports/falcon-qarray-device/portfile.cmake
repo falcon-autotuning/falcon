@@ -6,7 +6,11 @@ vcpkg_from_github(
 )
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
-    OPTIONS -DBUILD_TESTS=OFF
+    OPTIONS
+        -DBUILD_TESTS=OFF
+        -DPython3_EXECUTABLE=${PYTHON_EXECUTABLE}
+        -DPython3_ROOT_DIR=${VENV_DIR}
+        -DPython3_FIND_STRATEGY=LOCATION
 )
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup()
