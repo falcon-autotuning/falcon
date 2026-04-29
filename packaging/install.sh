@@ -89,6 +89,36 @@ if [ "$PLATFORM" != "windows" ] && [ "$EUID" -ne 0 ]; then
   fi
 fi
 
+# Load Docker image if not present
+if ! docker image inspect falcon:latest &>/dev/null; then
+  echo "🐳 Docker image falcon:latest not found locally."
+  echo "⏳ Downloading Docker image tarball..."
+  
+  IMAGE_URL="$RELEASE_URL/falcon-cli-image.tar.gz"
+  TEMP_IMAGE="$(mktemp)" || {
+    echo "❌ Failed to create temporary file for Docker image"
+    exit 1
+  }
+  
+  echo "📥 Fetching $IMAGE_URL..."
+  if curl -fsSL "$IMAGE_URL" -o "$TEMP_IMAGE"; then
+    echo "⏳ Loading Docker image into daemon (this may take a while)..."
+    if ! docker load -i "$TEMP_IMAGE"; then
+      echo "❌ Failed to load Docker image."
+      rm -f "$TEMP_IMAGE"
+      exit 1
+    fi
+    rm -f "$TEMP_IMAGE"
+    echo "✅ Docker image loaded successfully!"
+  else
+    echo "❌ Failed to download Docker image tarball from $IMAGE_URL"
+    rm -f "$TEMP_IMAGE"
+    exit 1
+  fi
+else
+  echo "🐳 Docker image falcon:latest already cached locally."
+fi
+
 # Create install directory
 mkdir -p "$INSTALL_DIR" || {
   echo "❌ Failed to create installation directory: $INSTALL_DIR"

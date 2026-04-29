@@ -267,6 +267,10 @@ package-release:
 	cd $(PACKAGE_DIR)/windows && zip -r $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip falcon
 	rm -rf $(PACKAGE_DIR)/windows
 	
+	# Export Docker Image
+	@echo "Exporting Falcon Docker Image (this may take a while)..."
+	docker save falcon:latest | gzip > $(PACKAGE_DIR)/falcon-cli-image.tar.gz
+	
 	@echo "✓ Release packages created in $(PACKAGE_DIR):"
 	@ls -lh $(PACKAGE_DIR)
 

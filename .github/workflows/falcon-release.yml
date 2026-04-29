@@ -87,4 +87,5 @@ jobs:
           files: |
             packaging/release/falcon-${{ github.ref_name }}-Linux.tar.gz
             packaging/release/falcon-${{ github.ref_name }}-win64.zip
+            packaging/release/falcon-cli-image.tar.gz
           token: ${{ secrets.GITHUB_TOKEN }}
