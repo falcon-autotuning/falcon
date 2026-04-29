@@ -6,3 +6,5 @@ _build/
 *.swp
 .DS_Store
 vcpkg_installed/
+packaging/release/
+test-install/
