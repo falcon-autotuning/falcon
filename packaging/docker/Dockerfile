@@ -38,9 +38,7 @@ RUN mkdir -p /opt/falcon/venv && \
   'numpy>=1.24.0' \
   'pyyaml>=6.0'
 ENV VENV_DIR=/opt/falcon/venv
-ENV Python3_EXECUTABLE=${VENV_DIR}/bin/python
-ENV Python3_ROOT_DIR=${VENV_DIR}
-ENV Python3_FIND_STRATEGY=LOCATION
+ENV PYTHON_EXECUTABLE=${VENV_DIR}/bin/python
 # Set up workspace
 COPY . /src
 WORKDIR /src
