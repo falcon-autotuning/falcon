@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
   flex \
   pkg-config \
   git \
-  gcc \
   curl \
   zip \
   unzip \
@@ -54,9 +53,9 @@ FROM ubuntu:24.04 AS release
 COPY --from=builder /opt/falcon /opt/falcon
 COPY --from=builder /opt/falcon /opt/falcon-seed
 RUN apt-get update && apt-get install -y \
+  build-essential \
   git \
   tar \
-  gcc \
   libssl3 \
   libcurl4 \
   libc6 \
