@@ -5,11 +5,11 @@
 ## Installation
 
 ```bash
-# Install specific version
-curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v1.1.0/install.sh | bash
+# Or latest 
+curl -fsSL https://github.com/falcon-autotuning/falcon/releases/latest/download/install.sh | sudo bash
 
-# Or with sudo for /opt/falcon
-curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v1.1.0/install.sh | sudo bash
+# Install specific version
+curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v<VERSION>/install.sh | sudo bash
 ```
 
 ## What's Inside
