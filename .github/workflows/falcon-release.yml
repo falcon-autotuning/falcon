@@ -3,7 +3,7 @@ name: Falcon Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   # Build and push Docker image to GHCR (EEE to trigger workflow)
@@ -80,7 +80,7 @@ jobs:
       - name: Package Release Artifacts
         run: |
           make package-release RELEASE_VERSION=${{ github.ref_name }}
-        
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -88,4 +88,5 @@ jobs:
             packaging/release/falcon-${{ github.ref_name }}-Linux.tar.gz
             packaging/release/falcon-${{ github.ref_name }}-win64.zip
             packaging/release/falcon-cli-image.tar.gz
+            packaging/install.sh
           token: ${{ secrets.GITHUB_TOKEN }}
