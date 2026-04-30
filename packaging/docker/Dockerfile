@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
   flex \
   pkg-config \
   git \
+  gcc \
   curl \
   zip \
   unzip \
@@ -55,6 +56,7 @@ COPY --from=builder /opt/falcon /opt/falcon-seed
 RUN apt-get update && apt-get install -y \
   git \
   tar \
+  gcc \
   libssl3 \
   libcurl4 \
   libc6 \
