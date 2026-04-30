@@ -1,227 +1,53 @@
-# Falcon-lib Root Makefile
-# Manages build configurations for all submodules
+.PHONY: help configure build test install clean vcpkg-bootstrap
 
-.PHONY: all deps help clean install-vcpkg-deps build-all test-all install-deps install-libs
-
-VCPKG_ROOT ?= $(CURDIR)/.vcpkg
-VCPKG_TOOLCHAIN ?= $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
-UNAME_S := $(shell uname -s)
-
-# GitHub release download base URL
-GITHUB_RELEASE_URL = https://github.com/$(REPO)/releases/download/$(RELEASE_TAG)
-
-PREFIX ?= /opt/falcon
-LIBDIR := $(PREFIX)/lib
-INCLUDEDIR := $(PREFIX)/include
-
-# Detect OS
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-    PLATFORM := linux
-    CMAKE_GENERATOR := Ninja
-    VCPKG_TRIPLET ?= x64-linux-dynamic
-    NPROC := $(shell nproc 2>/dev/null || echo 4)
-    SUDO ?= sudo
-		export CC=clang
-		export CXX=clang++
-endif
-ifeq ($(OS),Windows_NT)
-    PLATFORM := windows
-    CMAKE_GENERATOR := "Visual Studio 17 2022"
-    VCPKG_TRIPLET ?= x64-windows
-    NPROC := 4
-SUDO := 
-endif
-
-ENV_FILE := .nuget-credentials
-ifeq ($(wildcard $(ENV_FILE)),)
-  $(info [Makefile] $(ENV_FILE) not found, skipping environment sourcing)
-else
-  include $(ENV_FILE)
-  export $(shell sed 's/=.*//' $(ENV_FILE) | xargs)
-  $(info [Makefile] Loaded environment from $(ENV_FILE))
-endif
-# ── Paths ─────────────────────────────────────────────────────────────────────
-VCPKG_ROOT ?= $(CURDIR)/vcpkg
-VCPKG_TOOLCHAIN ?= $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
-VCPKG_INSTALLED_DIR ?= $(CURDIR)/vcpkg_installed
-FEED_URL ?= 
-NUGET_API_KEY ?=
-FEED_NAME ?= 
-USERNAME ?=
-VCPKG_BINARY_SOURCES ?= ""
-ifeq ($(strip $(FEED_URL)),)
-  CMAKE_VCPKG_BINARY_SOURCES :=
-else
-	VCPKG_BINARY_SOURCES := nuget,$(FEED_URL),readwrite
-  CMAKE_VCPKG_BINARY_SOURCES := -DVCPKG_BINARY_SOURCES="$(VCPKG_BINARY_SOURCES)"
-endif
-LINKER_FLAGS ?=
-ifeq ($(PLATFORM),linux)
-	LINKER_FLAGS := -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld"
-endif
-VCPKG_OVERLAY_TRIPS ?=
-ifeq ($(PLATFORM),windows)
-	VCPKG_OVERLAY_TRIPS := -DVCPKG_OVERLAY_TRIPLETS=../../my-vcpkg-triplets
-endif
-
-BUILD_DIR := build
-
-all: build-all
-
-.PHONY: vcpkg-bootstrap
-vcpkg-bootstrap:
-	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
-		echo "Cloning vcpkg..."; \
-		git clone https://github.com/microsoft/vcpkg.git $(VCPKG_ROOT); \
-	fi
-	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ] && [ ! -f "$(VCPKG_ROOT)/vcpkg.exe" ]; then \
-		echo "Bootstrapping vcpkg..."; \
-		UNAME="$$(uname -s 2>/dev/null || echo Unknown)"; \
-		if echo "$$UNAME" | grep -i -q 'mingw\|msys\|cygwin'; then \
-			echo "Detected Windows bash environment ($$UNAME). Using cmd.exe to launch bootstrap-vcpkg.bat"; \
-			BAT_PATH="$$(cygpath -w "$(VCPKG_ROOT)/bootstrap-vcpkg.bat")"; \
-			cmd.exe //C "$$BAT_PATH"; \
-			git clone https://github.com/Neumann-A/my-vcpkg-triplets.git || true; \
-		else \
-			echo "Detected Unix environment ($$UNAME). Using bootstrap-vcpkg.sh"; \
-			cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh; \
-		fi \
-	fi
-
-setup-nuget-auth:
-	@if [ -z "$$NUGET_API_KEY" ]; then \
-		echo "No .nuget_api_key or NUGET_API_KEY found, skipping NuGet setup (local-only build, no binary cache)."; \
-	else \
-		echo "Setting up NuGet authentication for vcpkg binary caching..."; \
-		if [ "$$(uname -s 2>/dev/null)" != "Windows_NT" ] && [ "$$(uname -o 2>/dev/null)" != "Msys" ] && [ "$$(uname -o 2>/dev/null)" != "Cygwin" ]; then \
-			if ! command -v mono >/dev/null 2>&1; then \
-				echo "Error: mono is not installed. Please install mono (e.g., 'sudo apt install mono-complete' on Ubuntu)."; \
-				exit 1; \
-			fi; \
-		fi; \
-		NUGET_EXE=$$($(VCPKG_ROOT)/vcpkg fetch nuget | tail -n1); \
-		if [ "$$(uname -s 2>/dev/null)" = "Linux" ]; then \
-			MONO_PREFIX="mono "; \
-		else \
-			MONO_PREFIX=""; \
-		fi; \
-		$$MONO_PREFIX"$$NUGET_EXE" sources remove -Name "$(FEED_NAME)" || true; \
-		$$MONO_PREFIX"$$NUGET_EXE" sources add -Name "$(FEED_NAME)" -Source "$(FEED_URL)" -Username "$(USERNAME)" -Password "$(NUGET_API_KEY)"; \
-	fi
-
-.PHONY: vcpkg-install-deps
-vcpkg-install-deps: setup-nuget-auth 
-	@echo "Installing vcpkg dependencies" 
-	VCPKG_FEATURE_FLAGS=binarycaching VCPKG_OVERLAY_TRIPLETS=my-vcpkg-triplets MAKELEVEL=0 \
-		$(VCPKG_ROOT)/vcpkg install \
-		--overlay-ports=ports \
-		--binarysource="$(VCPKG_BINARY_SOURCES)" \
-		--triplet="$(VCPKG_TRIPLET)" \
-		--vcpkg-root="$(VCPKG_ROOT)"
-
-check-vcpkg: vcpkg-bootstrap  vcpkg-install-deps
-	@echo "Checking vcpkg configuration..."
-	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
-		echo "Error: vcpkg not found at $(VCPKG_ROOT)"; \
-		echo "Run 'make deps' in the parent directory first"; \
-		exit 1; \
-	fi
-	@if [ ! -f "$(VCPKG_TOOLCHAIN)" ]; then \
-		echo "Error: vcpkg toolchain not found at $(VCPKG_TOOLCHAIN)"; \
-		exit 1; \
-	fi
-	@echo "✓ vcpkg configuration OK"
-
-install: install-libs
-	@echo "Installing falcon metapackage wrapper..."
-	$(SUDO) mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
-	$(SUDO) find $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/tools -type f -exec cp -v {} $(PREFIX)/bin/ \; 2>/dev/null || true
-	$(SUDO) cp -P $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/lib/*.so* $(PREFIX)/lib/ 2>/dev/null || true
-	$(SUDO) cp -r $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/* $(PREFIX)/include/ 2>/dev/null || true
-	@echo "✓ Metapackage binaries installed to $(PREFIX)"
-
-install-libs:
-	@echo "Installing standard libraries to $(PREFIX)/packages..."
-	$(SUDO) mkdir -p $(PREFIX)/packages
-	$(SUDO) cp -r $(CURDIR)/libs/* $(PREFIX)/packages/
-	@echo "✓ Standard libraries installed."
-
-configure-debug : check-vcpkg
-	@echo "Configuring debug build..."
-	@mkdir -p $(BUILD_DIR)
-	cd $(BUILD_DIR) && cmake .. \
-		-DCMAKE_BUILD_TYPE=Debug \
-		-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_TOOLCHAIN) \
-		-DVCPKG_INSTALLED_DIR=$(VCPKG_INSTALLED_DIR) \
-		$(VCPKG_OVERLAY_TRIPS) \
-		-DVCPKG_TARGET_TRIPLET=$(VCPKG_TRIPLET) \
-		-DBUILD_TESTS=ON \
-		-DUSE_CCACHE=ON \
-		-DENABLE_PCH=ON \
-		-DCMAKE_C_COMPILER=$(CC) \
-		-DCMAKE_CXX_COMPILER=$(CXX) \
-		$(CMAKE_VCPKG_BINARY_SOURCES) \
-		$(LINKER_FLAGS) \
-		-DVCPKG_OVERLAY_PORTS=../ports \
-		-G $(CMAKE_GENERATOR)
-	@echo "✓ Build configured"
-
-configure-release: check-vcpkg
-	@echo "Configuring debug build..."
-	@mkdir -p $(BUILD_DIR)
-	cd $(BUILD_DIR) && cmake .. \
-		-DCMAKE_BUILD_TYPE=Release\
-		-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_TOOLCHAIN) \
-		-DVCPKG_INSTALLED_DIR=$(VCPKG_INSTALLED_DIR) \
-		$(VCPKG_OVERLAY_TRIPS) \
-		-DVCPKG_TARGET_TRIPLET=$(VCPKG_TRIPLET) \
-		-DUSE_CCACHE=ON \
-		-DENABLE_PCH=ON \
-		-DCMAKE_C_COMPILER=$(CC) \
-		-DCMAKE_CXX_COMPILER=$(CXX) \
-		$(CMAKE_VCPKG_BINARY_SOURCES) \
-		$(LINKER_FLAGS) \
-		-DVCPKG_OVERLAY_PORTS=../ports \
-		-G $(CMAKE_GENERATOR)
-	@echo "✓ Build configured"
-
-build-debug: configure-debug
-	@echo "Building debug..."
-	cmake --build $(BUILD_DIR) -- -j$(NPROC)
-	@echo "✓ Debug build complete"
-	@$(MAKE) clangd-helpers
-
-build-release: configure-release
-	@echo "Building debug..."
-	cmake --build $(BUILD_DIR) -- -j$(NPROC)
-	@echo "✓ Debug build complete"
-
-clean:
-	@echo "Cleaning build artifacts and test containers..."
-	rm -rf $(BUILD_DIR) build/ compile_commands.json ./vcpkg_installed/
-	@echo "✓ Clean complete"
+# Detect the preset from CMAKE_PRESET environment variable or default to linux-clang-release
+PRESET ?= linux-clang-release
+CMAKE_BUILD_DIR := build/$(PRESET)
 
 help:
-	@echo "Falcon Library Root Makefile"
-	@echo "============================"
+	@echo "Falcon Build System"
+	@echo "========================"
 	@echo ""
-	@echo "Setup targets:"
-	@echo "  make deps               - Install or update vcpkg"
-	@echo "  make install-vcpkg-deps - Install all dependencies"
-	@echo "  make install-core       - Install falcon_core"
+	@echo "Available presets:"
+	@cmake --list-presets=all
 	@echo ""
-	@echo "Build targets:"
-	@echo "  make install           - Install all components"
-	@echo "  make clean             - Clean all builds"
+	@echo "Usage:"
+	@echo "  make configure PRESET=<preset>  - Configure build (default: $(PRESET))"
+	@echo "  make build PRESET=<preset>      - Build (default: $(PRESET))"
+	@echo "  make test PRESET=<preset>       - Run tests (default: $(PRESET))"
+	@echo "  make install PRESET=<preset>    - Install to /opt/falcon"
+	@echo "  make clean                      - Clean all build artifacts"
 	@echo ""
-	@echo "Component-specific:"
-	@echo "  make -C database <target>   - Run target in database/"
-	@echo "  make -C autotuner <target>  - Run target in autotuner/"
+	@echo "Examples:"
+	@echo "  make build                                      # Build with clang (default)"
+	@echo "  make build PRESET=linux-gcc-release             # Build with gcc"
+	@echo "  make install PRESET=linux-gcc-release           # Install gcc build"
 	@echo ""
-	@echo "Current configuration:"
-	@echo "  VCPKG_ROOT: $(VCPKG_ROOT)"
-	@echo "  VCPKG_TRIPLET: $(VCPKG_TRIPLET)"
+	@echo "Or use cmake directly:"
+	@echo "  cmake --preset linux-clang-release"
+	@echo "  cmake --build --preset linux-clang-release"
+	@echo "  ctest --preset linux-clang-release"
+
+vcpkg-bootstrap:
+	@echo "Bootstrapping vcpkg..."
+	MAKELEVEL=0 cmake -P cmake/bootstrap/bootstrap-vcpkg.cmake
+
+configure: vcpkg-bootstrap
+	@echo "Configuring $(PRESET)..."
+	cmake --preset $(PRESET)
+
+build: configure
+	@echo "Building $(PRESET)..."
+	cmake --build --preset $(PRESET)
+
+install: build
+	@echo "Installing $(PRESET) to /opt/falcon..."
+	cmake --install $(CMAKE_BUILD_DIR) --prefix /opt/falcon
+
+clean:
+	@echo "Cleaning all build artifacts..."
+	rm -rf build vcpkg_installed
+	@echo "✓ Clean complete"
 
 # ==========================================
 # Docker & Database Configuration Targets

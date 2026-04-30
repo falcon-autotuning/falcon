@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
   cmake \
   bison \
   flex \
-  clang \
   pkg-config \
   git \
   curl \
@@ -37,8 +36,7 @@ RUN mkdir -p /opt/falcon/venv && \
   uv pip install --python /opt/falcon/venv/bin/python \
   'qarray>=1.6.0' \
   'numpy>=1.24.0' \
-  'pyyaml>=6.0' && \
-  uv pip uninstall --python /opt/falcon/venv/bin/python -y pandas matplotlib plotly tqdm dash
+  'pyyaml>=6.0'
 ENV VENV_DIR=/opt/falcon/venv
 ENV PYTHON_EXECUTABLE=${VENV_DIR}/bin/python3
 # Set up workspace
@@ -47,9 +45,7 @@ WORKDIR /src
 
 # Build and install
 ENV SUDO=""
-RUN make build-release && \
-  cmake --install build --prefix /opt/falcon && \
-  make clean
+RUN make install PRESET=linux-gcc-release
 
 # Runtime stage
 FROM ubuntu:24.04 AS release
@@ -57,7 +53,6 @@ FROM ubuntu:24.04 AS release
 COPY --from=builder /opt/falcon /opt/falcon
 COPY --from=builder /opt/falcon /opt/falcon-seed
 RUN apt-get update && apt-get install -y \
-  clang \
   git \
   tar \
   libssl3 \

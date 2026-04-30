@@ -2,7 +2,7 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO falcon-autotuning/falcon-routine
     REF v${VERSION}
-    SHA512 de511126b49c50ceed6acf6e0e41e2dbdb2dc5b9153dfa48df1acf2a20a7006b4402b8637f38fa3335dd0a567a16473cb20c3df0b1d70cb205ae1bc26a4fbc9d
+    SHA512 54481fa63295013c1458554b2e67457a4299e78b5bc81e813c370d5b8a99c783ddab85fe8bbf667962bcb07279eab07bfb9fb48e9a6b4be5220a371e58ac246a
 )
 
 

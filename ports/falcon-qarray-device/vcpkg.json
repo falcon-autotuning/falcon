@@ -1,6 +1,6 @@
 {
   "name": "falcon-qarray-device",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A binding to teh qarray Python implementation for C++ consumption.",
   "homepage": "https://github.com/falcon-autotuning/falcon-qarray-device",
   "license": "MPL-2.0",
