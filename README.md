@@ -2,6 +2,16 @@
 
 **Falcon Lib** is a comprehensive C++ and DSL-based framework for quantum device autotuning. It bridges measurement requests from the Falcon core system with physical hardware instruments, providing a complete suite of libraries, tools, and examples for building robust quantum device control workflows.
 
+## Installation
+
+```bash
+# Install specific version
+curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v1.1.0/install.sh | bash
+
+# Or with sudo for /opt/falcon
+curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v1.1.0/install.sh | sudo bash
+```
+
 ## What's Inside
 
 Falcon Lib is organized into several key components:

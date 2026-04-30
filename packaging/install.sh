@@ -4,9 +4,7 @@
 # Supports: Linux (native bash), Windows (Git Bash/WSL/MSYS2)
 #
 # Usage:
-#   curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/latest/install.sh | bash
-#   Or with custom version:
-#   bash install.sh v1.0.1
+#   curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v1.1.0/install.sh | bash
 # ============================================================================
 
 set -euo pipefail
@@ -33,32 +31,6 @@ detect_platform() {
   esac
 }
 
-# Fetch latest release version from GitHub API
-fetch_latest_release() {
-  local api_url="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases"
-
-  # Get latest release (not pre-release)
-  local latest=$(curl -fsSL "$api_url?per_page=100" |
-    grep -E '"tag_name"|"prerelease"' |
-    paste - - |
-    grep 'prerelease": false' |
-    head -1 |
-    grep -oP '"tag_name": "\K[^"]+' || echo "")
-
-  if [ -z "$latest" ]; then
-    echo "❌ Failed to fetch latest release from GitHub API"
-    exit 1
-  fi
-
-  echo "$latest"
-}
-
-# Parse semantic version and compare
-# Returns the highest version from a list
-get_latest_semver() {
-  sort -V | tail -1
-}
-
 PLATFORM="$(detect_platform)"
 
 if [ "$PLATFORM" = "unsupported" ]; then
@@ -66,16 +38,29 @@ if [ "$PLATFORM" = "unsupported" ]; then
   exit 1
 fi
 
-# Get release version
-if [ $# -eq 0 ]; then
-  echo "⏳ Fetching latest release..."
-  RELEASE_VERSION=$(fetch_latest_release)
-  echo "✅ Latest release: $RELEASE_VERSION"
-else
-  RELEASE_VERSION="$1"
-fi
+# Extract version from GitHub release URL (e.g., v1.1.0)
+# If run directly from file, try to detect from environment or GitHub release API
+detect_release_version() {
+  # Try to get from RELEASE_VERSION env var first
+  if [ -n "${RELEASE_VERSION:-}" ]; then
+    echo "$RELEASE_VERSION"
+    return
+  fi
 
-RELEASE_URL="${FALCON_RELEASE_URL:-https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION}"
+  # Try to detect from GitHub API (latest non-prerelease)
+  local api_url="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases"
+  local latest=$(curl -fsSL "$api_url?per_page=1" | grep -oP '"tag_name": "\K[^"]+' | head -1 || echo "")
+
+  if [ -n "$latest" ]; then
+    echo "$latest"
+  else
+    echo "❌ Failed to detect release version"
+    exit 1
+  fi
+}
+
+RELEASE_VERSION=$(detect_release_version)
+RELEASE_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION"
 
 # Platform-specific configuration
 if [ "$PLATFORM" = "windows" ]; then
@@ -109,7 +94,6 @@ echo "=========================================="
 echo ""
 echo "📍 Installation Directory: $INSTALL_DIR"
 echo "📦 Platform: $([ "$PLATFORM" = "windows" ] && echo "Windows" || echo "Linux")"
-echo "📥 Package: $PACKAGE_FILE"
 echo "📌 Release: $RELEASE_VERSION"
 echo ""
 
@@ -188,7 +172,6 @@ echo ""
 echo "⚙️ Configuring PATH..."
 
 if [ "$PLATFORM" = "windows" ]; then
-  # Speculate Windows path and add via PowerShell to avoid truncation
   WIN_INSTALL_DIR="${INSTALL_DIR//\//\\}"
   WIN_BIN_DIR="${WIN_INSTALL_DIR}\\bin"
 
@@ -209,14 +192,10 @@ if [ "$PLATFORM" = "windows" ]; then
     echo "ℹ️ $WIN_BIN_DIR is already in Windows User PATH."
   fi
 else
-  # Linux/macOS
   BIN_DIR="$INSTALL_DIR/bin"
-
-  # Determine real user if running with sudo
   REAL_USER="${SUDO_USER:-$USER}"
   REAL_HOME="$(eval echo "~$REAL_USER")"
 
-  # Add to all detected profile files for robustness
   updated=0
 
   for profile in "$REAL_HOME/.bashrc" "$REAL_HOME/.zshrc" "$REAL_HOME/.bash_profile" "$REAL_HOME/.profile"; do
