@@ -4,7 +4,7 @@
 # Supports: Linux (native bash), Windows (Git Bash/WSL/MSYS2)
 #
 # Usage:
-#   curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v1.0.0/install.sh | bash
+#   curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/latest/install.sh | bash
 #   Or with custom version:
 #   bash install.sh v1.0.1
 # ============================================================================
@@ -12,10 +12,8 @@
 set -euo pipefail
 
 # Configuration
-RELEASE_VERSION="${1:-v1.1.0}"
 REPO_OWNER="falcon-autotuning"
 REPO_NAME="falcon"
-RELEASE_URL="${FALCON_RELEASE_URL:-https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION}"
 
 # Detect platform
 detect_platform() {
@@ -35,12 +33,49 @@ detect_platform() {
   esac
 }
 
+# Fetch latest release version from GitHub API
+fetch_latest_release() {
+  local api_url="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases"
+
+  # Get latest release (not pre-release)
+  local latest=$(curl -fsSL "$api_url?per_page=100" |
+    grep -E '"tag_name"|"prerelease"' |
+    paste - - |
+    grep 'prerelease": false' |
+    head -1 |
+    grep -oP '"tag_name": "\K[^"]+' || echo "")
+
+  if [ -z "$latest" ]; then
+    echo "❌ Failed to fetch latest release from GitHub API"
+    exit 1
+  fi
+
+  echo "$latest"
+}
+
+# Parse semantic version and compare
+# Returns the highest version from a list
+get_latest_semver() {
+  sort -V | tail -1
+}
+
 PLATFORM="$(detect_platform)"
 
 if [ "$PLATFORM" = "unsupported" ]; then
   echo "❌ Unsupported platform"
   exit 1
 fi
+
+# Get release version
+if [ $# -eq 0 ]; then
+  echo "⏳ Fetching latest release..."
+  RELEASE_VERSION=$(fetch_latest_release)
+  echo "✅ Latest release: $RELEASE_VERSION"
+else
+  RELEASE_VERSION="$1"
+fi
+
+RELEASE_URL="${FALCON_RELEASE_URL:-https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$RELEASE_VERSION}"
 
 # Platform-specific configuration
 if [ "$PLATFORM" = "windows" ]; then
@@ -54,7 +89,7 @@ fi
 extract_package() {
   local archive="$1"
   local dest="$2"
-  
+
   if [ "$PLATFORM" = "windows" ]; then
     unzip -q -o "$archive" -d "$dest"
     if [ -d "$dest/falcon" ]; then
@@ -66,7 +101,6 @@ extract_package() {
   fi
 }
 
-
 PACKAGE_URL="$RELEASE_URL/$PACKAGE_FILE"
 
 # Display info
@@ -76,6 +110,7 @@ echo ""
 echo "📍 Installation Directory: $INSTALL_DIR"
 echo "📦 Platform: $([ "$PLATFORM" = "windows" ] && echo "Windows" || echo "Linux")"
 echo "📥 Package: $PACKAGE_FILE"
+echo "📌 Release: $RELEASE_VERSION"
 echo ""
 
 # Check permissions early for Linux/Mac
@@ -93,13 +128,13 @@ fi
 if ! docker image inspect falcon:latest &>/dev/null; then
   echo "🐳 Docker image falcon:latest not found locally."
   echo "⏳ Downloading Docker image tarball..."
-  
+
   IMAGE_URL="$RELEASE_URL/falcon-cli-image.tar.gz"
   TEMP_IMAGE="$(mktemp)" || {
     echo "❌ Failed to create temporary file for Docker image"
     exit 1
   }
-  
+
   echo "📥 Fetching $IMAGE_URL..."
   if curl -fsSL "$IMAGE_URL" -o "$TEMP_IMAGE"; then
     echo "⏳ Loading Docker image into daemon (this may take a while)..."
@@ -156,7 +191,7 @@ if [ "$PLATFORM" = "windows" ]; then
   # Speculate Windows path and add via PowerShell to avoid truncation
   WIN_INSTALL_DIR="${INSTALL_DIR//\//\\}"
   WIN_BIN_DIR="${WIN_INSTALL_DIR}\\bin"
-  
+
   echo "🪟 Adding $WIN_BIN_DIR to Windows User PATH via PowerShell..."
   if powershell.exe -Command "
     \$binDir = '$WIN_BIN_DIR';
@@ -176,21 +211,21 @@ if [ "$PLATFORM" = "windows" ]; then
 else
   # Linux/macOS
   BIN_DIR="$INSTALL_DIR/bin"
-  
+
   # Determine real user if running with sudo
   REAL_USER="${SUDO_USER:-$USER}"
   REAL_HOME="$(eval echo "~$REAL_USER")"
-  
+
   # Add to all detected profile files for robustness
   updated=0
-  
+
   for profile in "$REAL_HOME/.bashrc" "$REAL_HOME/.zshrc" "$REAL_HOME/.bash_profile" "$REAL_HOME/.profile"; do
     if [ -f "$profile" ]; then
       echo "🐧 Adding $BIN_DIR to PATH in $profile..."
       if ! grep -q "$BIN_DIR" "$profile" 2>/dev/null; then
-        echo "" >> "$profile"
-        echo "# Falcon Toolchain" >> "$profile"
-        echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$profile"
+        echo "" >>"$profile"
+        echo "# Falcon Toolchain" >>"$profile"
+        echo "export PATH=\"$BIN_DIR:\$PATH\"" >>"$profile"
         echo "✅ Added to $profile."
         updated=1
       else
@@ -198,7 +233,7 @@ else
       fi
     fi
   done
-  
+
   if [ "$updated" -eq 1 ]; then
     echo "ℹ️ Please restart your terminal or source your profile file for changes to take effect."
   fi
