@@ -1,4 +1,5 @@
 _build/
+docker-build.log
 .nuget-credentials
 *.install
 *.ba

@@ -53,7 +53,7 @@ clean:
 # Docker & Database Configuration Targets
 # ==========================================
 
-RELEASE_VERSION ?= v1.1.0
+RELEASE_VERSION ?= v1.1.1
 PACKAGE_DIR ?= $(CURDIR)/packaging/release
 
 DOCKER_REGISTRY ?= ghcr.io
@@ -65,22 +65,30 @@ DB_PORT ?= 5432
 CONFIG_VOLUME ?= falcon-config
 DB_DATA_VOLUME ?= falcon-postgres-data
 
-.PHONY: docker-build docker-push docker-pull docker-db-start docker-db-stop docker-db-purge docker-install-wrappers docker-uninstall-wrappers docker-teardown
+.PHONY: docker-build docker-push docker-pull docker-db-start docker-db-stop docker-db-purge docker-teardown
 
 docker-build:
-	@echo "Building FAlCon Docker Image..."
-	docker build -t $(DOCKER_IMAGE) -f packaging/docker/Dockerfile .
-	@echo "✓ Docker image $(DOCKER_IMAGE) built successfully."
+	@echo "Building Falcon Docker Image..."
+	docker build -t $(DOCKER_IMAGE) -t $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) -f packaging/docker/Dockerfile .
+	@echo "✓ Docker image built with tags:"
+	@echo "  - $(DOCKER_IMAGE)"
+	@echo "  - $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION)"
 
-package-release:
+docker-push:
+	@echo "Pushing $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) to registry..."
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION)
+	@echo "✓ Pushed both $(DOCKER_TAG) and $(RELEASE_VERSION) tags"
+
+package-release: docker-build
 	@echo "Packaging release artifacts for version $(RELEASE_VERSION)..."
 	mkdir -p $(PACKAGE_DIR)
 	
 	# Linux/Mac package
 	rm -rf $(PACKAGE_DIR)/linux
 	mkdir -p $(PACKAGE_DIR)/linux/falcon
-	# Extract toolchain from Docker image
-	docker run --rm falcon:latest tar -C /opt/falcon -cf - . | tar -C $(PACKAGE_DIR)/linux/falcon -xf -
+	# Extract toolchain from versioned Docker image
+	docker run --rm $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) tar -C /opt/falcon -cf - . | tar -C $(PACKAGE_DIR)/linux/falcon -xf -
 	# Copy wrappers over binaries (overwriting them with host wrappers)
 	cp packaging/wrappers/linux_mac/*.sh $(PACKAGE_DIR)/linux/falcon/bin/
 	for f in $(PACKAGE_DIR)/linux/falcon/bin/*.sh; do [ -f "$$f" ] && mv "$$f" "$${f%.sh}" || true; done
@@ -95,9 +103,12 @@ package-release:
 	cd $(PACKAGE_DIR)/windows && zip -r $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip falcon
 	rm -rf $(PACKAGE_DIR)/windows
 	
-	# Export Docker Image
-	@echo "Exporting Falcon Docker Image (this may take a while)..."
-	docker save falcon:latest | gzip > $(PACKAGE_DIR)/falcon-cli-image.tar.gz
+	# Export Docker Image (versioned)
+	@echo "Exporting Falcon Docker Image $(RELEASE_VERSION) (this may take a while)..."
+	docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) | pigz -9 -p 4 > $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz
+	
+	# Also create a symlink for latest
+	ln -sf $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz $(PACKAGE_DIR)/falcon-image.tar.gz
 	
 	@echo "✓ Release packages created in $(PACKAGE_DIR):"
 	@ls -lh $(PACKAGE_DIR)
@@ -108,13 +119,11 @@ publish-release: package-release
 	gh release upload $(RELEASE_VERSION) \
 		$(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz \
 		$(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip \
-		$(PACKAGE_DIR)/falcon-cli-image.tar.gz \
+		$(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz \
+		packaging/install.sh \
 		--clobber
+	@echo "✓ Release published to GitHub"
 
-docker-push:
-	@echo "Tagging and pushing $(DOCKER_IMAGE) to $(DOCKER_REGISTRY)..."
-	docker tag $(DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)
-	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)
 
 docker-pull:
 	@echo "Pulling $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)..."
@@ -162,27 +171,6 @@ docker-db-purge:
 	-docker volume rm $(CONFIG_VOLUME)
 	-docker volume rm $(DB_DATA_VOLUME)
 	@echo "✓ Persistence volumes destroyed."
-
-docker-install-wrappers:
-	@if [ "$(UNAME_S)" = "Linux" ] || [ "$(UNAME_S)" = "Darwin" ]; then \
-		echo "Installing wrapper scripts to /usr/local/bin..."; \
-		$(SUDO) cp packaging/wrappers/linux_mac/*.sh /usr/local/bin/; \
-		$(SUDO) rename 's/\.sh$$//' /usr/local/bin/falcon-*.sh 2>/dev/null || \
-			for f in /usr/local/bin/falcon-*.sh; do $(SUDO) mv "$$f" "$${f%.sh}"; done; \
-		$(SUDO) chmod +x /usr/local/bin/falcon-*; \
-		echo "✓ Wrappers installed. You can now run 'falcon-run', etc."; \
-	else \
-		echo "For Windows, please manually add 'packaging/wrappers/windows' to your PATH."; \
-	fi
-
-docker-uninstall-wrappers:
-	@if [ "$(UNAME_S)" = "Linux" ] || [ "$(UNAME_S)" = "Darwin" ]; then \
-		echo "Removing wrapper scripts from /usr/local/bin..."; \
-		$(SUDO) rm -f /usr/local/bin/falcon-run /usr/local/bin/falcon-test /usr/local/bin/falcon-pm /usr/local/bin/falcon-db-cli; \
-		echo "✓ Wrappers uninstalled."; \
-	else \
-		echo "For Windows, please manually remove the folder from your PATH."; \
-	fi
 
 docker-teardown: docker-db-stop docker-uninstall-wrappers
 	@echo "Removing FAlCon Docker image..."

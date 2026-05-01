@@ -2,7 +2,7 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO falcon-autotuning/falcon-package-manager
     REF v${VERSION}
-    SHA512 4c9cd11267d31c083c4dcb5f04dbbbcb67e51d4954ec760ed007f31be27dd6dfd1c8ce2b882a0196db2c491625e325b6ea2177eba46092237f665766a9f2bac7
+    SHA512 eb2d2c30df40e4d6aba608982f876c2273c8b4935858b7ddf0bd65bea92e37a51a4c51469713b17691608defb119d603025f4379bf2af417826724abc9c1e78d
 )
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
