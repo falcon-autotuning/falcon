@@ -53,7 +53,7 @@ clean:
 # Docker & Database Configuration Targets
 # ==========================================
 
-RELEASE_VERSION ?= v1.1.1
+RELEASE_VERSION ?= v1.1.2
 PACKAGE_DIR ?= $(CURDIR)/packaging/release
 
 DOCKER_REGISTRY ?= ghcr.io
