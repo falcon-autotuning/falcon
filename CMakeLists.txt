@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(
   falcon
-  VERSION 1.1.2
+  VERSION 1.1.3
   DESCRIPTION "Full falcon docker image for dsl control and development"
   HOMEPAGE_URL "https://github.com/falcon-autotuning/falcon"
   LANGUAGES CXX C
