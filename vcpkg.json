@@ -6,6 +6,7 @@
   "homepage": "https://github.com/falcon-autotuning/falcon-lib",
   "license": "MPL-2.0",
   "dependencies": [
+    "yaml-config-validator",
     {
       "name": "libpqxx",
       "version>=": "7.10.5"
@@ -40,9 +41,6 @@
     },
     {
       "name": "falcon-package-manager"
-    },
-    {
-      "name": "falcon-qarray-device"
     },
     {
       "name": "falcon-typing"
@@ -115,18 +113,14 @@
     {
       "name": "xsimd",
       "version>=": "10.0.0"
-    },
-    {
-      "name": "pybind11",
-      "version>=": "3.0.0"
-    },
-    {
-      "name": "plplot",
-      "version>=": "5.15.0"
     }
   ],
-  "builtin-baseline": "e5a1490e1409d175932ef6014519e9ae149ddb7c",
+  "builtin-baseline": "9942fb5f996ea431c5ed8fb8d2a53f31d08df62e",
   "overrides": [
+    {
+      "name": "libpqxx",
+      "version": "7.10.5"
+    },
     {
       "name": "xtensor",
       "version": "0.25.0"
