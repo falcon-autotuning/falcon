@@ -1,4 +1,7 @@
 _build/
+build/
+my-vcpkg-triplets/
+vcpkg/
 docker-build.log
 .nuget-credentials
 *.install
