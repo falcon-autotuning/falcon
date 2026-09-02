@@ -25,20 +25,10 @@ RUN apt-get update && apt-get install -y \
   ninja-build \
   lld \
   coreutils \
+  gfortran \
   mono-complete && \
   rm -rf /var/lib/apt/lists/*
-# Install uv 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:$PATH"
-# qarray appears to only depend on pandas, matplotlib, tqdm, dash,and plotly for gui and examples, which we don't need
-RUN mkdir -p /opt/falcon/venv && \
-  uv venv --python 3.12 /opt/falcon/venv && \
-  uv pip install --python /opt/falcon/venv/bin/python \
-  'qarray>=1.6.0' \
-  'numpy>=1.24.0' \
-  'pyyaml>=6.0'
-ENV VENV_DIR=/opt/falcon/venv
-ENV PYTHON_EXECUTABLE=${VENV_DIR}/bin/python
 # Set up workspace
 COPY . /src
 WORKDIR /src

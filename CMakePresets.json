@@ -70,7 +70,7 @@
       },
       "environment": {
         "CC": "gcc",
-        "CXX": "gcc++"
+        "CXX": "g++"
       }
     },
     {
@@ -86,7 +86,7 @@
       },
       "environment": {
         "CC": "gcc",
-        "CXX": "gcc++"
+        "CXX": "g++"
       }
     },
     {
