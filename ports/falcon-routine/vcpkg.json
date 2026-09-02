@@ -1,0 +1,58 @@
+{
+  "name": "falcon-routine",
+  "version": "1.0.8",
+  "description": "Standard routine helpers for connecting to the instrument hub through the FFI interface and requesting measurements and data",
+  "homepage": "https://github.com/falcon-autotuning/falcon-routine",
+  "license": "MPL-2.0",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake"
+    },
+    {
+      "name": "vcpkg-cmake-config"
+    },
+    {
+      "name": "nlohmann-json",
+      "version>=": "3.11.2"
+    },
+    {
+      "name": "spdlog"
+    },
+    {
+      "name": "cnats",
+      "version>=": "3.7.0"
+    },
+    {
+      "name": "falcon-database",
+      "version>=": "1.0.3"
+    },
+    {
+      "name": "falcon-comms",
+      "version>=": "1.0.6"
+    },
+    {
+      "name": "falcon-core",
+      "version>=": "1.2.9"
+    },
+    {
+      "name": "ensmallen"
+    },
+    {
+      "name": "armadillo"
+    }
+  ],
+  "overrides": [
+    {
+      "name": "libpqxx",
+      "version": "7.10.5"
+    },
+    {
+      "name": "xtensor",
+      "version": "0.25.0"
+    },
+    {
+      "name": "xtl",
+      "version": "0.7.5"
+    }
+  ]
+}

@@ -1,7 +1,14 @@
 _build/
+build/
+my-vcpkg-triplets/
+vcpkg/
+docker-build.log
+.nuget-credentials
 *.install
 *.ba
 *~
 *.swp
 .DS_Store
 vcpkg_installed/
+packaging/release/
+test-install/

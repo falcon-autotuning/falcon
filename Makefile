@@ -1,206 +1,178 @@
-# Falcon-lib Root Makefile
-# Manages build configurations for all submodules
+.PHONY: help configure build test install clean vcpkg-bootstrap
 
-.PHONY: all deps help clean install-vcpkg-deps build-all test-all install-lsp-framework install-deps install-core
-
-VCPKG_ROOT ?= $(CURDIR)/.vcpkg
-VCPKG_TOOLCHAIN ?= $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
-UNAME_S := $(shell uname -s)
-
-# Repo and release configuration
-REPO = falcon-autotuning/falcon-core
-RELEASE_TAG = v1.1.0
-LIBS_RELEASE_TAG = v0.0.2
-LIBS_REPO = falcon-autotuning/falcon-core-libs
-
-# GitHub release download base URL
-GITHUB_RELEASE_URL = https://github.com/$(REPO)/releases/download/$(RELEASE_TAG)
-
-PREFIX ?= /opt/falcon
-LIBDIR := $(PREFIX)/lib
-INCLUDEDIR := $(PREFIX)/include
-
-ifeq ($(UNAME_S),Linux)
-  VCPKG_TRIPLET ?= x64-linux-dynamic
-	TMPDIR = /tmp/falcon-core-install
-	SUDO := sudo
-  ARCHIVE_CPP = falcon-core-cpp-linux-x64.tar.gz
-  ARCHIVE_CPP_SHA = falcon-core-cpp-linux-x64.tar.gz.sha256
-  ARCHIVE_CAPI = falcon-core-c-api-linux-x64.tar.gz
-  ARCHIVE_CAPI_SHA = falcon-core-c-api-linux-x64.tar.gz.sha256
-  EXTRACT_CPP = tar -xzf $(TMPDIR)/$(ARCHIVE_CPP) -C $(TMPDIR)/cpp
-  EXTRACT_CAPI = tar -xzf $(TMPDIR)/$(ARCHIVE_CAPI) -C $(TMPDIR)/c_api
-  EXTRACT_LSP = tar -xvf $(TMPDIR)/$(ARCHIVE_LSP) -C $(TMPDIR)/lsp
-
-
-endif
-ifeq ($(OS),Windows_NT)
-    VCPKG_TRIPLET ?= x64-windows
-
-  TMPDIR = $(USERPROFILE)/AppData/Local/Temp/falcon-core-install
-  SUDO =
-	ARCHIVE_CPP = falcon-core-cpp-windows-x64.zip
-  ARCHIVE_CPP_SHA := $(shell echo falcon-core-cpp-windows-x64.zip.sha256 | tr -d '\r')
-  ARCHIVE_CAPI = falcon-core-c-api-windows-x64.zip
-  ARCHIVE_CAPI_SHA := $(shell echo falcon-core-c-api-windows-x64.zip.sha256 | tr -d '\r')
-  EXTRACT_CPP = unzip -o $(TMPDIR)/$(ARCHIVE_CPP) -d $(TMPDIR)/cpp
-  EXTRACT_CAPI = unzip -o $(TMPDIR)/$(ARCHIVE_CAPI) -d $(TMPDIR)/c_api
-  LIBSUBDIR = bin
-endif
-
-all: build-all
-
-deps:
-	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
-		echo "Installing vcpkg to $(VCPKG_ROOT)..."; \
-		git clone https://github.com/microsoft/vcpkg.git $(VCPKG_ROOT); \
-		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh; \
-	else \
-		echo "vcpkg already installed at $(VCPKG_ROOT)"; \
-		cd $(VCPKG_ROOT) && git pull; \
-	fi
-	@echo "✓ vcpkg ready"
-
-
-install-core:
-	@echo "Fetching latest release assets from GitHub..."
-	mkdir -p $(TMPDIR)
-	$(SUDO) mkdir -p $(LIBDIR)
-	$(SUDO) mkdir -p $(INCLUDEDIR)
-	@echo "Downloading $(ARCHIVE_CPP)..."
-	curl -L -f -o $(TMPDIR)/$(ARCHIVE_CPP) \
-		$(GITHUB_RELEASE_URL)/$(ARCHIVE_CPP)
-	@echo "Downloading $(ARCHIVE_CPP_SHA)..."
-	curl -L -f -o $(TMPDIR)/$(ARCHIVE_CPP_SHA) \
-		$(GITHUB_RELEASE_URL)/$(ARCHIVE_CPP_SHA)
-	@echo "Downloading $(ARCHIVE_CAPI)..."
-	curl -L -f -o $(TMPDIR)/$(ARCHIVE_CAPI) \
-		$(GITHUB_RELEASE_URL)/$(ARCHIVE_CAPI)
-	@echo "Downloading $(ARCHIVE_CAPI_SHA)..."
-	curl -L -f -o $(TMPDIR)/$(ARCHIVE_CAPI_SHA) \
-		$(GITHUB_RELEASE_URL)/$(ARCHIVE_CAPI_SHA)
-ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
-	dos2unix "$(TMPDIR)/falcon-core-cpp-windows-x64.zip.sha256"
-	dos2unix "$(TMPDIR)/falcon-core-c-api-windows-x64.zip.sha256"
-endif
-	@echo "Verifying checksums..."
-	cd "$(TMPDIR)" && sha256sum -c "$(shell echo $(ARCHIVE_CPP_SHA) | tr -d '\r')"
-	cd "$(TMPDIR)" && sha256sum -c "$(shell echo $(ARCHIVE_CAPI_SHA) | tr -d '\r')"
-	@echo "Extracting Archives..."
-	mkdir -p $(TMPDIR)/cpp
-	mkdir -p $(TMPDIR)/c_api
-	$(EXTRACT_CPP)
-	$(EXTRACT_CAPI)
-	@echo "Installing Shared Libraries..."
-	$(SUDO) install -Dm755 $(TMPDIR)/cpp/$(LIBSUBDIR)/* $(LIBDIR)/
-	$(SUDO) install -Dm755 $(TMPDIR)/c_api/$(LIBSUBDIR)/* $(LIBDIR)/
-	@echo "Extracting and Installing C++ Headers..."
-	$(SUDO) mkdir -p $(INCLUDEDIR)/falcon-core-cpp/falcon_core/
-	$(SUDO) cp -r $(TMPDIR)/cpp/include/falcon_core/* $(INCLUDEDIR)/falcon-core-cpp/falcon_core/
-	@echo "Extracting and Installing C API Headers..."
-	$(SUDO) mkdir -p $(INCLUDEDIR)/falcon-core-c-api/falcon_core/
-	$(SUDO) cp -r $(TMPDIR)/c_api/include/falcon_core/* $(INCLUDEDIR)/falcon-core-c-api/falcon_core/
-	@echo "Installing other Headers..."
-	$(SUDO) find $(TMPDIR)/cpp/include -mindepth 1 -maxdepth 1 ! -name 'falcon_core' -exec cp -r {} $(INCLUDEDIR)/ \;
-	$(SUDO) find $(TMPDIR)/c_api/include -mindepth 1 -maxdepth 1 ! -name 'falcon_core' -exec cp -r {} $(INCLUDEDIR)/ \;
-ifeq ($(UNAME_S),Linux)
-	@echo "Updating linker cache..."
-	$(SUDO) ldconfig
-endif
-	@echo "falcon-core libraries and headers installed successfully."
-	$(SUDO) mkdir -p $(INCLUDEDIR)/falcon_core 
-	$(SUDO) cp -r $(INCLUDEDIR)/falcon-core-cpp/falcon_core/* $(INCLUDEDIR)/falcon_core
-	$(SUDO) cp -r $(INCLUDEDIR)/falcon-core-c-api/falcon_core/* $(INCLUDEDIR)/falcon_core
-	$(SUDO) rm -rf $(INCLUDEDIR)/falcon-core-cpp
-	$(SUDO) rm -rf $(INCLUDEDIR)/falcon-core-c-api
-	// Installing cmake files for falcon_core that are not included with teh build
-	$(SUDO) mkdir -p $(LIBDIR)/cmake
-	$(SUDO) mkdir -p $(LIBDIR)/cmake/falcon_core
-	$(SUDO) cp ./falcon_core-config-version.cmake $(LIBDIR)/cmake/falcon_core
-	$(SUDO) cp ./falcon_core-config.cmake $(LIBDIR)/cmake/falcon_core
-	@echo ""
-
-
-install-vcpkg-deps: 
-	@echo "Installing vcpkg dependencies from vcpkg.json..."
-	CC=clang CXX=clang++ MAKELEVEL=0 $(VCPKG_ROOT)/vcpkg install --triplet $(VCPKG_TRIPLET)
-	@echo "Patching cereal install..."
-	mkdir -p $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/cereal/types
-	curl -sSL https://raw.githubusercontent.com/falcon-autotuning/falcon-core/main/cpp/include/cereal/types/xtensor.hpp -o $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/cereal/types/xtensor.hpp
-	$(SUDO) mkdir -p $(INCLUDEDIR)/cereal/types
-	$(SUDO) cp $(CURDIR)/vcpkg_installed/$(VCPKG_TRIPLET)/include/cereal/types/xtensor.hpp $(INCLUDEDIR)/cereal/types/xtensor.hpp
-	@echo "✓ vcpkg dependencies installed"
-
-install-lsp-framework: install-vcpkg-deps
-	@echo "Installing lsp-framework 1.3.0 from source..."
-	mkdir -p $(TMPDIR)
-	curl -L -f -o $(TMPDIR)/lsp-framework-1.3.0.zip https://github.com/leon-bckl/lsp-framework/archive/refs/tags/1.3.0.zip
-	unzip -o $(TMPDIR)/lsp-framework-1.3.0.zip -d $(TMPDIR)
-	@echo "Building lsp-framework (Release) with clang..."
-	cd $(TMPDIR)/lsp-framework-1.3.0 && mkdir -p build && cd build && CC=clang CXX=clang++ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-	cd $(TMPDIR)/lsp-framework-1.3.0/build && make
-	@echo "Installing lsp-framework (Release)..."
-	cd $(TMPDIR)/lsp-framework-1.3.0/build && cmake --install . --prefix $(TMPDIR)/lsp-framework-1.3.0/build
-	$(SUDO) install -Dm755 $(TMPDIR)/lsp-framework-1.3.0/build/liblsp.a $(LIBDIR)/
-	@echo "Building lsp-framework (Debug) with clang..."
-	cd $(TMPDIR)/lsp-framework-1.3.0 && mkdir -p build-debug && cd build-debug && CC=clang CXX=clang++ cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-	cd $(TMPDIR)/lsp-framework-1.3.0/build-debug && make
-	@echo "Installing lsp-framework (Debug)..."
-	cd $(TMPDIR)/lsp-framework-1.3.0/build-debug && cmake --install . --prefix $(TMPDIR)/lsp-framework-1.3.0/build-debug
-	$(SUDO) install -Dm755 $(TMPDIR)/lsp-framework-1.3.0/build-debug/liblspd.a $(LIBDIR)/liblspd.a
-	@echo "Copying lsp headers..."
-	$(SUDO) mkdir -p $(INCLUDEDIR)/lsp
-	$(SUDO) cp -r $(TMPDIR)/lsp-framework-1.3.0/build/include/lsp/ $(INCLUDEDIR)/
-	@echo "Installing lsp-framework cmake config files..."
-	$(SUDO) mkdir -p $(LIBDIR)/cmake/lsp
-	$(SUDO) cp $(TMPDIR)/lsp-framework-1.3.0/build/lib/cmake/lsp/lspConfig.cmake $(LIBDIR)/cmake/lsp/
-	$(SUDO) cp $(TMPDIR)/lsp-framework-1.3.0/build/lib/cmake/lsp/lspConfigVersion.cmake $(LIBDIR)/cmake/lsp/
-	$(SUDO) cp $(TMPDIR)/lsp-framework-1.3.0/build/lib/cmake/lsp/lspConfigTargets.cmake $(LIBDIR)/cmake/lsp/
-	@echo "✓ lsp-framework (Release & Debug) installed"
-
-install-deps: deps install-core install-vcpkg-deps install-lsp-framework
-
-install:
-	@echo "Installing all components..."
-	$(MAKE) -C database install
-	$(MAKE) -C comms install
-	$(MAKE) -C typing install
-	$(MAKE) -C routine install
-	$(MAKE) -C qarrayDevice install
-	$(MAKE) -C dsl install
-	@echo "✓ All components installed"
-
-clean:
-	@echo "Cleaning all components..."
-	$(MAKE) -C database clean
-	$(MAKE) -C comms clean
-	$(MAKE) -C typing clean
-	$(MAKE) -C routine clean
-	$(MAKE) -C qarrayDevice clean
-	$(MAKE) -C dsl clean
-	rm -rf $(VCPKG_ROOT)
-	rm -rf ./vcpkg_installed/
-	@echo "✓ Clean complete"
+# Detect the preset from CMAKE_PRESET environment variable or default to linux-clang-release
+PRESET ?= linux-clang-release
+CMAKE_BUILD_DIR := build/$(PRESET)
 
 help:
-	@echo "Falcon Library Root Makefile"
-	@echo "============================"
+	@echo "Falcon Build System"
+	@echo "========================"
 	@echo ""
-	@echo "Setup targets:"
-	@echo "  make deps               - Install or update vcpkg"
-	@echo "  make install-vcpkg-deps - Install all dependencies"
-	@echo "  make install-lsp-framework - Install lsp-framework dependency"
-	@echo "  make install-core       - Install falcon_core"
-	@echo "  make install-deps       - Installs all dependencies in order"
+	@echo "Available presets:"
+	@cmake --list-presets=all
 	@echo ""
-	@echo "Build targets:"
-	@echo "  make install           - Install all components"
-	@echo "  make clean             - Clean all builds"
+	@echo "Usage:"
+	@echo "  make configure PRESET=<preset>  - Configure build (default: $(PRESET))"
+	@echo "  make build PRESET=<preset>      - Build (default: $(PRESET))"
+	@echo "  make test PRESET=<preset>       - Run tests (default: $(PRESET))"
+	@echo "  make install PRESET=<preset>    - Install to /opt/falcon"
+	@echo "  make clean                      - Clean all build artifacts"
 	@echo ""
-	@echo "Component-specific:"
-	@echo "  make -C database <target>   - Run target in database/"
-	@echo "  make -C autotuner <target>  - Run target in autotuner/"
+	@echo "Examples:"
+	@echo "  make build                                      # Build with clang (default)"
+	@echo "  make build PRESET=linux-gcc-release             # Build with gcc"
+	@echo "  make install PRESET=linux-gcc-release           # Install gcc build"
 	@echo ""
-	@echo "Current configuration:"
-	@echo "  VCPKG_ROOT: $(VCPKG_ROOT)"
-	@echo "  VCPKG_TRIPLET: $(VCPKG_TRIPLET)"
+	@echo "Or use cmake directly:"
+	@echo "  cmake --preset linux-clang-release"
+	@echo "  cmake --build --preset linux-clang-release"
+	@echo "  ctest --preset linux-clang-release"
+
+vcpkg-bootstrap:
+	@echo "Bootstrapping vcpkg..."
+	MAKELEVEL=0 cmake -P cmake/bootstrap/bootstrap-vcpkg.cmake
+
+configure: vcpkg-bootstrap
+	@echo "Configuring $(PRESET)..."
+	cmake --preset $(PRESET)
+
+build: configure
+	@echo "Building $(PRESET)..."
+	cmake --build --preset $(PRESET)
+
+install: build
+	@echo "Installing $(PRESET) to /opt/falcon..."
+	cmake --install $(CMAKE_BUILD_DIR) --prefix /opt/falcon
+
+clean:
+	@echo "Cleaning all build artifacts..."
+	rm -rf build vcpkg_installed
+	@echo "✓ Clean complete"
+
+# ==========================================
+# Docker & Database Configuration Targets
+# ==========================================
+
+RELEASE_VERSION ?= v1.1.3
+PACKAGE_DIR ?= $(CURDIR)/packaging/release
+
+DOCKER_REGISTRY ?= ghcr.io
+DOCKER_REPO ?= falcon-autotuning/falcon
+DOCKER_TAG ?= latest
+DOCKER_IMAGE ?= falcon:$(DOCKER_TAG)
+DB_CONTAINER_NAME ?= falcon-postgres
+DB_PORT ?= 5432
+CONFIG_VOLUME ?= falcon-config
+DB_DATA_VOLUME ?= falcon-postgres-data
+
+.PHONY: docker-build docker-push docker-pull docker-db-start docker-db-stop docker-db-purge docker-teardown
+
+docker-build:
+	@echo "Building Falcon Docker Image..."
+	docker build -t $(DOCKER_IMAGE) -t $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) -f packaging/docker/Dockerfile .
+	@echo "✓ Docker image built with tags:"
+	@echo "  - $(DOCKER_IMAGE)"
+	@echo "  - $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION)"
+
+docker-push:
+	@echo "Pushing $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) to registry..."
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION)
+	@echo "✓ Pushed both $(DOCKER_TAG) and $(RELEASE_VERSION) tags"
+
+package-release: docker-build
+	@echo "Packaging release artifacts for version $(RELEASE_VERSION)..."
+	mkdir -p $(PACKAGE_DIR)
+	
+	# Linux/Mac package
+	rm -rf $(PACKAGE_DIR)/linux
+	mkdir -p $(PACKAGE_DIR)/linux/falcon
+	# Extract toolchain from versioned Docker image
+	docker run --rm $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) tar -C /opt/falcon -cf - . | tar -C $(PACKAGE_DIR)/linux/falcon -xf -
+	# Copy wrappers over binaries (overwriting them with host wrappers)
+	cp packaging/wrappers/linux_mac/*.sh $(PACKAGE_DIR)/linux/falcon/bin/
+	for f in $(PACKAGE_DIR)/linux/falcon/bin/*.sh; do [ -f "$$f" ] && mv "$$f" "$${f%.sh}" || true; done
+	chmod +x $(PACKAGE_DIR)/linux/falcon/bin/*
+	tar -czf $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz -C $(PACKAGE_DIR)/linux falcon
+	rm -rf $(PACKAGE_DIR)/linux
+	
+	# Windows package
+	rm -rf $(PACKAGE_DIR)/windows
+	mkdir -p $(PACKAGE_DIR)/windows/falcon/bin
+	cp packaging/wrappers/windows/*.bat $(PACKAGE_DIR)/windows/falcon/bin/
+	cd $(PACKAGE_DIR)/windows && zip -r $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip falcon
+	rm -rf $(PACKAGE_DIR)/windows
+	
+	# Export Docker Image (versioned)
+	@echo "Exporting Falcon Docker Image $(RELEASE_VERSION) (this may take a while)..."
+	docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) | pigz -9 -p 4 > $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz
+	
+	# Also create a symlink for latest
+	ln -sf $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz $(PACKAGE_DIR)/falcon-image.tar.gz
+	
+	@echo "✓ Release packages created in $(PACKAGE_DIR):"
+	@ls -lh $(PACKAGE_DIR)
+
+publish-release: package-release
+	@echo "Publishing release artifacts to GitHub for version $(RELEASE_VERSION)..."
+	gh release create $(RELEASE_VERSION) --title "Falcon $(RELEASE_VERSION)" --notes "Release $(RELEASE_VERSION)" || true
+	gh release upload $(RELEASE_VERSION) \
+		$(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz \
+		$(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-win64.zip \
+		$(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz \
+		packaging/install.sh \
+		--clobber
+	@echo "✓ Release published to GitHub"
+
+
+docker-pull:
+	@echo "Pulling $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)..."
+	docker pull $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)
+	docker tag $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG) $(DOCKER_IMAGE)
+
+docker-db-start:
+	@echo "Creating secure volume..."
+	@docker volume create $(CONFIG_VOLUME) > /dev/null
+	@echo "Launching secure configuration prompt..."
+	@# 1. Spin up an interactive bash container. 
+	@# It captures input securely (hiding the password) and writes to the volume.
+	@docker run -it --rm -v $(CONFIG_VOLUME):/config bash -c "\
+		echo '=== FAlCon Database Setup ===' && \
+		read -p 'Database Username [falcon_user]: ' usr && usr=\$${usr:-falcon_user} && \
+		read -s -p 'Database Password: ' pass && echo && \
+		read -p 'Database Name [falcon_db]: ' dbname && dbname=\$${dbname:-falcon_db} && \
+		echo \"\$$usr\" > /config/db_user.txt && \
+		echo \"\$$pass\" > /config/db_pass.txt && \
+		echo \"\$$dbname\" > /config/db_name.txt && \
+		echo \"export FALCON_DB_URL=postgresql://\$$usr:\$$pass@host.docker.internal:$(DB_PORT)/\$$dbname\" > /config/db.env && \
+		echo '✓ Credentials securely stored in Docker volume.'"
+	@echo "Starting PostgreSQL container..."
+	@# 2. Start Postgres using the _FILE variables, pointing to the volume.
+	@docker run -d --name $(DB_CONTAINER_NAME) \
+		-v $(CONFIG_VOLUME):/config:ro \
+		-v $(DB_DATA_VOLUME):/var/lib/postgresql/data \
+		-e POSTGRES_USER_FILE=/config/db_user.txt \
+		-e POSTGRES_PASSWORD_FILE=/config/db_pass.txt \
+		-e POSTGRES_DB_FILE=/config/db_name.txt \
+		-p $(DB_PORT):5432 \
+		postgres:15
+	@echo "✓ Database started securely with persistent volume $(DB_DATA_VOLUME)."
+
+docker-db-stop:
+	@echo "Stopping database container (data persists in volumes)..."
+	-docker stop $(DB_CONTAINER_NAME)
+	-docker rm $(DB_CONTAINER_NAME)
+	@echo "✓ Database container stopped."
+
+docker-db-purge:
+	@echo "DANGER: Destroying all database data and configurations..."
+	-docker stop $(DB_CONTAINER_NAME)
+	-docker rm $(DB_CONTAINER_NAME)
+	-docker volume rm $(CONFIG_VOLUME)
+	-docker volume rm $(DB_DATA_VOLUME)
+	@echo "✓ Persistence volumes destroyed."
+
+docker-teardown: docker-db-stop docker-uninstall-wrappers
+	@echo "Removing FAlCon Docker image..."
+	-docker rmi $(DOCKER_IMAGE)
+	@echo "✓ Teardown complete."
