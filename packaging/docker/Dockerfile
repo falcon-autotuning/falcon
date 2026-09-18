@@ -49,6 +49,7 @@ RUN apt-get update && apt-get install -y \
   libssl3 \
   libcurl4 \
   libc6 \
+  libgfortran5 \
   && rm -rf /var/lib/apt/lists/*
 # Set the environment variables
 ENV PATH="/root/.local/bin:/opt/falcon/bin:$PATH"
