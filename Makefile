@@ -40,6 +40,10 @@ build: configure
 	@echo "Building $(PRESET)..."
 	cmake --build --preset $(PRESET)
 
+test: docker-build 
+	@echo "Testing $(PRESET)..."
+	./tests/integration/external-hub/run-test.sh
+
 install: build
 	@echo "Installing $(PRESET) to /opt/falcon..."
 	cmake --install $(CMAKE_BUILD_DIR) --prefix /opt/falcon
