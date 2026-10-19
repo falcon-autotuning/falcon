@@ -1,0 +1,31 @@
+import (
+  "github.com/falcon-autotuning/std-lib@v1.2.3/testing"
+  "github.com/falcon-autotuning/std-lib@v1.2.3/hub"
+  "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementRequest"
+  "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementResponse"
+)
+
+autotuner ExternalHubCommunicationTest -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_external_hub_communication (TestRunner runner, TestContext t) {
+        // Prepare measurement request to dispatch to external hub
+        string req_sample = measurementRequest::SampleJSON();
+        measurementRequest::MeasurementRequest req = measurementRequest::MeasurementRequest.FromJSON(req_sample);
+
+        // Send request to external hub on host via NATS
+        measurementResponse::MeasurementResponse resp = RequestMeasurement(req, 5000);
+
+        // Verify we received a valid response from outside the container
+        Error err_resp = t.ExpectStrNe("", resp.ToJSON(), "Received valid measurement response from external hub");
+
+        if (resp.ToJSON() != "") {
+            passed = passed + 1;
+        } else {
+            failed = failed + 1;
+        }
+
+        -> __end(runner, t);
+    }
+}

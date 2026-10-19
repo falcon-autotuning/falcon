@@ -1,0 +1,20 @@
+FROM falcon:latest
+
+COPY mock_hub_daemon.cpp /src/mock_hub_daemon.cpp
+
+RUN clang++ -std=c++20 -O2 \
+      -I/opt/falcon/include \
+      /src/mock_hub_daemon.cpp \
+      -L/opt/falcon/lib \
+      -lfalcon-mock-hub \
+      -lfalcon-comms \
+      -lfalcon-core \
+      -lfalcon-typing \
+      -lnats \
+      -lspdlog \
+      -Wl,-rpath,/opt/falcon/lib \
+      -o /usr/local/bin/mock_hub_daemon && \
+    rm -rf /src
+
+ENTRYPOINT ["/usr/local/bin/mock_hub_daemon"]
+CMD ["4222"]

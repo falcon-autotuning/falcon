@@ -24,11 +24,11 @@
     },
     {
       "name": "falcon-routine",
-      "version>=": "1.0.11"
+      "version>=": "1.0.12"
     },
     {
       "name": "falcon-core",
-      "version>=": "1.2.17",
+      "version>=": "1.2.18",
       "features": ["c-api"]
     },
     {
@@ -45,6 +45,9 @@
     },
     {
       "name": "falcon-typing"
+    },
+    {
+      "name": "falcon-mock-hub"
     },
     {
       "name": "curl",

@@ -1,0 +1,41 @@
+{
+  "name": "falcon-mock-hub",
+  "version": "0.0.4",
+  "description": "Mock instrument hub service and FFI bindings for Falcon",
+  "homepage": "https://github.com/falcon-autotuning/mock-hub",
+  "license": "MPL-2.0",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake"
+    },
+    {
+      "name": "vcpkg-cmake-config"
+    },
+    {
+      "name": "nlohmann-json",
+      "version>=": "3.11.2"
+    },
+    {
+      "name": "spdlog"
+    },
+    {
+      "name": "cnats",
+      "version>=": "3.7.0"
+    },
+    {
+      "name": "falcon-typing",
+      "version>=": "1.0.0"
+    },
+    {
+      "name": "falcon-core",
+      "version>=": "1.2.18",
+      "features": [
+        "c-api"
+      ]
+    },
+    {
+      "name": "falcon-comms",
+      "version>=": "1.0.13"
+    }
+  ]
+}

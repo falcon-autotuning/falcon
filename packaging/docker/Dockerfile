@@ -24,9 +24,12 @@ RUN apt-get update && apt-get install -y \
   libtool \
   ninja-build \
   lld \
+  clang \
+  clang-tools \
   coreutils \
   gfortran \
   mono-complete && \
+  (which clang-scan-deps >/dev/null 2>&1 || ln -sf /usr/bin/clang-scan-deps-* /usr/bin/clang-scan-deps 2>/dev/null || true) && \
   rm -rf /var/lib/apt/lists/*
 ENV PATH="/root/.local/bin:$PATH"
 # Set up workspace
@@ -35,7 +38,7 @@ WORKDIR /src
 
 # Build and install
 ENV SUDO=""
-RUN make install PRESET=linux-gcc-release
+RUN make install PRESET=linux-clang-release
 
 # Runtime stage
 FROM ubuntu:24.04 AS release
@@ -44,14 +47,28 @@ COPY --from=builder /opt/falcon /opt/falcon
 COPY --from=builder /opt/falcon /opt/falcon-seed
 RUN apt-get update && apt-get install -y \
   build-essential \
+  clang \
+  lld \
   git \
   tar \
+  curl \
   libssl3 \
   libcurl4 \
   libc6 \
   libgfortran5 \
+  libomp-dev \
+  libarmadillo-dev \
+  libopenblas0 \
+  liblapack3 \
+  nats-server \
+  && ln -sf /usr/lib/llvm-18/lib/libomp.so /usr/lib/x86_64-linux-gnu/libomp.so \
+  && ln -sf /usr/lib/libarmadillo.so /opt/falcon/lib/libarmadillo.so.14 \
+  && ln -sf /usr/lib/libarmadillo.so /opt/falcon-seed/lib/libarmadillo.so.14 \
+  && ldconfig \
   && rm -rf /var/lib/apt/lists/*
 # Set the environment variables
+ENV CC="clang"
+ENV CXX="clang++"
 ENV PATH="/root/.local/bin:/opt/falcon/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/falcon/lib:$LD_LIBRARY_PATH"
 # Copy smoke test script and run it to verify the runtime environment
