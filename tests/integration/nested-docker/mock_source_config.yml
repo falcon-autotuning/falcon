@@ -1,11 +1,234 @@
 name: Source1
-api_ref: mock_source_api.yml
-connection:
-  type: MockVoltageSource
+api_ref: ../instrument-apis/generated-source-api.yml
 io_config:
   analog1_voltage:
-    type: float
-    role: output
-    unit: V
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog2_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog3_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog5_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog6_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog7_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog8_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog9_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog10_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog11_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog12_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog13_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog14_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog15_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog16_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog17_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog19_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog20_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog21_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog23_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog24_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog25_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog26_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog27_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog28_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog29_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog30_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog31_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog32_voltage:
+    transformed-unit: V
+    offset: 0
+  analog1_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog2_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog3_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog4_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog5_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog6_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog8_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog9_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog10_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog11_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog12_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog13_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog14_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog15_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog16_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog17_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog18_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog19_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog20_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog21_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog23_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog24_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog25_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog26_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog28_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog29_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog30_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog31_measured_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog32_measured_voltage:
+    transformed-unit: V
     offset: 0
     scale: 1

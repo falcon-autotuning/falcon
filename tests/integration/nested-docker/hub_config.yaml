@@ -1,11 +1,134 @@
-wiremap: /workspace/tests/integration/nested-docker/wiremap.yml
-quantum-dot-config: /workspace/tests/integration/nested-docker/2-dot-1-chargesensor.yml
-nats-url: nats://127.0.0.1:4222
-local-database: /tmp/measurements
-user-measurement-luas: /workspace/tests/integration/nested-docker
-# Instrument registration is commented out for partial/wellness test
-# inst-config: /workspace/tests/integration/nested-docker/mock_meter_config.yml;/workspace/tests/integration/nested-docker/mock_source_config.yml
-# inst-plugins: /workspace/build/mock_multimeter.so;/workspace/build/mock_voltage_source.so
-# instrument-apis:
-#   - /workspace/tests/integration/nested-docker/mock_meter_api.yml
-#   - /workspace/tests/integration/nested-docker/mock_source_api.yml
+wiremap:
+  - name: S1
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 1
+  - name: S2
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 2
+  - name: S3
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 3
+  - name: P1
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 4
+  - name: P2
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 5
+  - name: P3
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 6
+  - name: B1
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 7
+  - name: B2
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 8
+  - name: B3
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 9
+  - name: B4
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 10
+  - name: B5
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 11
+  - name: R1
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 12
+  - name: R2
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 13
+  - name: R3
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 14
+  - name: R4
+    instrument:
+      name: Source1
+      channel_group: analog
+      index: 15
+  - name: O1
+    instrument:
+      name: Meter1
+      channel_group: analog
+      index: 1
+  - name: O2
+    instrument:
+      name: Meter1
+      channel_group: analog
+      index: 2
+  - name: O3
+    instrument:
+      name: Meter1
+      channel_group: analog
+      index: 3
+  - name: O4
+    instrument:
+      name: Meter1
+      channel_group: analog
+      index: 4
+
+quantum-dot-config: /home/tylerk/falcon-dev/instrument-controller/tests/device-configs/2-dot-1-chargesensor.yml
+initial-voltage-state: []
+nats:
+  host: 127.0.0.1
+  port: 4222
+database:
+  local-database: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/data
+  local-cache: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/data/cache
+  owner: integration-test
+working-directory: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/data
+user-measurement-luas: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/scripts
+instrument-server:
+  rpc-port: 5555
+  autostart: true
+  instruments:
+    - config: /home/tylerk/falcon-dev/instrument-controller/tests/instrument-control/source-config.yml
+      plugin: /home/tylerk/falcon-dev/instrument-controller/build/linux-clang-debug/tests/mock_voltage_source.so
+      type: dc_voltage_source
+      characteristics:
+        - identifier: source_voltage
+          readCommand:
+            command: GET_VOLTAGE
+          writeCommand:
+            command: SET_VOLTAGE
+    - config: /home/tylerk/falcon-dev/instrument-controller/tests/instrument-control/multimeter-config.yml
+      plugin: /home/tylerk/falcon-dev/instrument-controller/build/linux-clang-debug/tests/mock_multimeter.so
+      type: amnmeter
+      characteristics:
+        - identifier: sample_rate
+          readCommand: {}
+          writeCommand:
+            command: SET_SAMPLE_RATE
+        - identifier: number_of_samples
+          readCommand:
+            command: GET_BINS
+          writeCommand:
+            command: SET_BINS

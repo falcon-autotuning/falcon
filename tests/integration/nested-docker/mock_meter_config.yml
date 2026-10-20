@@ -1,17 +1,67 @@
 name: Meter1
-api_ref: mock_meter_api.yml
-connection:
-  type: MockMultimeter
+api_ref: ../instrument-apis/generated-multimeter-api.yml
 io_config:
   analog1_stream:
-    type: array
-    role: input
-    unit: V
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog2_stream:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog3_stream:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog4_stream:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog5_stream:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog6_stream:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog7_stream:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog8_stream:
+    transformed-unit: V
     offset: 0
     scale: 1
   analog1_voltage:
-    type: float
-    role: input
-    unit: V
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog2_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog3_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog4_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog5_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog6_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog7_voltage:
+    transformed-unit: V
+    offset: 0
+    scale: 1
+  analog8_voltage:
+    transformed-unit: V
     offset: 0
     scale: 1
