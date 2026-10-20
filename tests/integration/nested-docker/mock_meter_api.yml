@@ -1,0 +1,38 @@
+api_version: "1.0.0"
+instrument:
+  vendor: Mock
+  model: 1
+  identifier: Meter1
+  instrument_type: amnmeter
+protocol:
+  type: Custom
+  name: MockMultimeter
+channel_groups:
+  - name: analog
+    channels: [1]
+    io_types:
+      - suffix: stream
+        type: array
+        role: input
+        unit: V
+      - suffix: voltage
+        type: float
+        role: input
+        unit: V
+io:
+  - name: bins
+    type: integer
+    role: input
+    unit: count
+  - name: sample_rate
+    type: integer
+    role: input
+    unit: Hz
+commands:
+  SET_BINS:
+    params: [analog, bins]
+  SET_SAMPLE_RATE:
+    params: [analog, sample_rate]
+  MEASURE_STREAM:
+    params: [analog]
+    returns: [stream]

@@ -1,0 +1,34 @@
+import (
+  "github.com/falcon-autotuning/std-lib@v1.2.3/testing"
+  "github.com/falcon-autotuning/std-lib@v1.2.3/hub"
+  "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementRequest"
+  "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementResponse"
+)
+
+autotuner Integration1DTraceTest -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_1d_measurement (TestRunner runner, TestContext t) {
+        // Construct measurement request for 1D sweep
+        string req_json = "{\"command\":\"measure_1D_buffered\",\"setter\":\"P1\",\"getter\":\"M1\",\"voltages\":[0.0,0.1,0.2,0.3,0.4,0.5],\"sample_rate\":1000}";
+        measurementRequest::MeasurementRequest req = measurementRequest::MeasurementRequest.FromJSON(req_json);
+
+        // Dispatch measurement to falcon-instrument-hub over NATS
+        measurementResponse::MeasurementResponse resp = RequestMeasurement(req, 10000);
+
+        // Verify status
+        Error err_status = t.ExpectStrEq(resp.Status(), "OK", "Measurement completed with OK status");
+
+        // Verify returned data values
+        Error err_has_data = t.ExpectTrue(resp.Data().Size() > 0, "Response contains 1D trace data points");
+
+        if (resp.Status() == "OK" && resp.Data().Size() > 0) {
+            passed = passed + 1;
+        } else {
+            failed = failed + 1;
+        }
+
+        -> __end(runner, t);
+    }
+}

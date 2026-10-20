@@ -1,0 +1,96 @@
+wiremap:
+- name: S1
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 1
+- name: S2
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 2
+- name: S3
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 3
+- name: P1
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 4
+- name: P2
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 5
+- name: P3
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 6
+- name: B1
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 7
+- name: B2
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 8
+- name: B3
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 9
+- name: B4
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 10
+- name: B5
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 11
+- name: R1
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 12
+- name: R2
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 13
+- name: R3
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 14
+- name: R4
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 15
+- name: O1
+  instrument:
+    name: Meter1
+    channel_name: analog
+    index: 1
+- name: O2
+  instrument:
+    name: Meter1
+    channel_name: analog
+    index: 2
+- name: O3
+  instrument:
+    name: Source1
+    channel_name: analog
+    index: 17
+- name: O4
+  instrument:
+    name: Meter1
+    channel_name: analog
+    index: 3

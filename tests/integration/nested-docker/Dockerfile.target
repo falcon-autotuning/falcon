@@ -1,0 +1,36 @@
+FROM ubuntu:26.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install target host toolchain, docker CLI, NATS server, and runtime libraries
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    clang \
+    lld \
+    cmake \
+    git \
+    curl \
+    docker.io \
+    nats-server \
+    libatomic1 \
+    libpqxx-dev \
+    libyaml-cpp-dev \
+    nlohmann-json3-dev \
+    libgfortran5 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install instrument-controller via standard release script
+RUN curl -fsSL https://github.com/falcon-autotuning/instrument-controller/releases/download/v0.1.21-alpha/install.sh | bash && \
+    rm -f /opt/instrument-controller/include/stdint.h /opt/instrument-controller/include/endian.h
+
+ENV PATH="/opt/instrument-controller/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/instrument-controller/lib:${LD_LIBRARY_PATH:-}"
+
+WORKDIR /workspace
+
+# Entrypoint script coordinates starting services and invoking the inner Falcon container
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

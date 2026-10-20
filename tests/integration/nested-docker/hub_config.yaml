@@ -1,0 +1,11 @@
+wiremap: /workspace/tests/integration/nested-docker/wiremap.yml
+quantum-dot-config: /workspace/tests/integration/nested-docker/2-dot-1-chargesensor.yml
+nats-url: nats://127.0.0.1:4222
+local-database: /tmp/measurements
+user-measurement-luas: /workspace/tests/integration/nested-docker
+# Instrument registration is commented out for partial/wellness test
+# inst-config: /workspace/tests/integration/nested-docker/mock_meter_config.yml;/workspace/tests/integration/nested-docker/mock_source_config.yml
+# inst-plugins: /workspace/build/mock_multimeter.so;/workspace/build/mock_voltage_source.so
+# instrument-apis:
+#   - /workspace/tests/integration/nested-docker/mock_meter_api.yml
+#   - /workspace/tests/integration/nested-docker/mock_source_api.yml

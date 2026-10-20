@@ -1,0 +1,11 @@
+name: Source1
+api_ref: mock_source_api.yml
+connection:
+  type: MockVoltageSource
+io_config:
+  analog1_voltage:
+    type: float
+    role: output
+    unit: V
+    offset: 0
+    scale: 1

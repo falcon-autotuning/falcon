@@ -1,0 +1,25 @@
+api_version: "1.0.0"
+instrument:
+  vendor: Mock
+  model: 1
+  identifier: Source1
+  instrument_type: dc_voltage_source
+protocol:
+  type: Custom
+  name: MockVoltageSource
+channel_groups:
+  - name: analog
+    channels: [1]
+    io_types:
+      - suffix: voltage
+        type: float
+        role: output
+        unit: V
+io:
+  - name: voltage
+    type: float
+    role: output
+    unit: V
+commands:
+  SET_VOLTAGE:
+    params: [analog, voltage]

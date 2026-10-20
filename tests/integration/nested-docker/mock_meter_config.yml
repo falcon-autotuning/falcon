@@ -1,0 +1,17 @@
+name: Meter1
+api_ref: mock_meter_api.yml
+connection:
+  type: MockMultimeter
+io_config:
+  analog1_stream:
+    type: array
+    role: input
+    unit: V
+    offset: 0
+    scale: 1
+  analog1_voltage:
+    type: float
+    role: input
+    unit: V
+    offset: 0
+    scale: 1
