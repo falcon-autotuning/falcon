@@ -97,8 +97,9 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         // Dispatch measurement to falcon-instrument-hub over NATS
         measurementResponse::MeasurementResponse resp = hub.RequestMeasurement(MeasurementRequest.New("taking this 1D measurement", waveforms, getters, transforms, timeDomain), 10000);
 
-        // TODO: Verify resp
-        Error err_status = t.ExpectStrEq(resp.Status(), "OK", "Measurement completed with OK status");
+        LabelledArrays<LabelledMeasuredArray> measurementarrays = resp->Arrays();
+        t.ExpectTrue(measurementarrays.IsMeasuredArrays(), "was not measurement arrays");
+        t.ExpectTrue(measurementarrays.Size() == 1, "more than 1 measurement array was detected");
 
         -> __end(runner, t);
     }
