@@ -211,13 +211,6 @@ EOF
 
 HUB_LOG=/tmp/hub.log
 
-instrument-hub start \
-  --hub-config "$HUB_CONFIG" \
-  >$HUB_LOG 2>&1 &
-
-echo "=========================================================="
-echo " (3/3) Starting Falcon Instrument Hub (Core Services)"
-echo "=========================================================="
 export LD_LIBRARY_PATH="/opt/instrument-controller/lib:$BUILD_DIR:${LD_LIBRARY_PATH:-}"
 
 export MOCK_MULTIMETER_DATA_FILE="$TEST_DIR/gaussian_1d.txt"
@@ -227,7 +220,7 @@ if [[ ! -f "$MOCK_MULTIMETER_DATA_FILE" ]]; then
 fi
 echo "Using mock multimeter data file: $MOCK_MULTIMETER_DATA_FILE"
 
-instrument-hub --config "$TEST_DIR/hub_config.yaml" >/tmp/hub.log 2>&1 &
+instrument-hub --config "$TEST_DIR/hub_config.yaml" >$HUB_LOG 2>&1 &
 HUB_PID=$!
 sleep 3
 
@@ -245,7 +238,7 @@ fi
 echo "✅ Falcon Instrument Hub is running (pid=$HUB_PID)."
 
 echo "=========================================================="
-echo " Launching Wellness Check"
+echo " (3/3) Launching Wellness Check"
 echo "=========================================================="
 
 export NATS_URL=nats://$NATS_HOST:$NATS_PORT
