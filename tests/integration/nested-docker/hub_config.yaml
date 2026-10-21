@@ -101,8 +101,6 @@ nats:
   host: 127.0.0.1
   port: 4222
 database:
-  local-database: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/data
-  local-cache: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/data/cache
   owner: integration-test
 working-directory: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/data
 user-measurement-luas: /home/tylerk/falcon-dev/instrument-controller/tests/test-runs/SettingVoltageTest_set_then_get_then_set_and_get_460587_1792522849135115534/scripts
