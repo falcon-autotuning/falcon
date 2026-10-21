@@ -24,7 +24,7 @@
     },
     {
       "name": "falcon-routine",
-      "version>=": "1.0.12"
+      "version>=": "1.0.13"
     },
     {
       "name": "falcon-core",
