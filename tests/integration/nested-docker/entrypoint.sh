@@ -11,6 +11,8 @@ TEST_DIR="$WORKSPACE/tests/integration/nested-docker"
 BUILD_DIR="$TEST_DIR/build"
 mkdir -p "$BUILD_DIR" /tmp/measurements /tmp/hub-workdir
 
+export LD_LIBRARY_PATH="/opt/falcon/lib:/opt/instrument-controller/lib:$BUILD_DIR:${LD_LIBRARY_PATH:-}"
+
 echo "=========================================================="
 echo " 🩺 Running Wellness Check on Target Environment"
 echo "=========================================================="
@@ -210,8 +212,6 @@ instrument-server:
 EOF
 
 HUB_LOG=/tmp/hub.log
-
-export LD_LIBRARY_PATH="/opt/instrument-controller/lib:$BUILD_DIR:${LD_LIBRARY_PATH:-}"
 
 export MOCK_MULTIMETER_DATA_FILE="$TEST_DIR/gaussian_1d.txt"
 if [[ ! -f "$MOCK_MULTIMETER_DATA_FILE" ]]; then
