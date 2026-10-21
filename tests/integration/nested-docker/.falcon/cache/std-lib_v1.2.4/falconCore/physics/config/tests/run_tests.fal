@@ -1,0 +1,101 @@
+// Tests for falcon_core/physics/config
+// Run with: falcon-test run_tests.fal
+import "../../../../testing/testing.fal";
+import "../../deviceStructures/connection/connection.fal";
+import "../../deviceStructures/connections/connections.fal";
+import "../../deviceStructures/impedance/impedance.fal";
+import "../../../autotunerInterfaces/names/channel/channel.fal";
+import "../../../autotunerInterfaces/names/channels/channels.fal";
+import "../../../autotunerInterfaces/names/gname/gname.fal";
+import "../config.fal";
+
+autotuner ConfigTests -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_loader_and_config (TestRunner runner, TestContext t) {
+        Loader ldr = Loader.New("device_config.yaml");
+        Config cfg = ldr.Config();
+
+        Error err = t.ExpectIntEq(cfg.NumUniqueChannels(), 2, "NumUniqueChannels is 2");
+
+        Array<channel::Channel> chs = cfg.GetCurrentChannels();
+        err = t.ExpectIntEq(chs.Size(), 2, "Channels count is 2");
+        channel::Channel ch1 = chs.GetIndex(0);
+        err = t.ExpectStrEq(ch1.Name(), "I_O1", "First channel is I_O1");
+
+        channel::Channel ch2 = chs.GetIndex(1);
+        err = t.ExpectStrEq(ch2.Name(), "I_O3", "Second channel is I_O3");
+        -> __end(runner, t);
+    }
+
+    state test_channel_gates (TestRunner runner, TestContext t) {
+        Config cfg = Config.Load("device_config.yaml");
+        Array<channel::Channel> chs = cfg.GetCurrentChannels();
+        channel::Channel ch1 = chs.GetIndex(0);
+
+        Array<connection::Connection> plungers = cfg.GetChannelPlungerGates(ch1);
+        Error err = t.ExpectIntEq(plungers.Size(), 2, "ch1 has 2 plunger gates");
+        connection::Connection p1 = plungers.GetIndex(0);
+        err = t.ExpectStrEq(p1.Name(), "P1", "First plunger is P1");
+
+        Array<connection::Connection> barriers = cfg.GetChannelBarrierGates(ch1);
+        err = t.ExpectIntEq(barriers.Size(), 3, "ch1 has 3 barrier gates");
+
+        Array<connection::Connection> reservoirs = cfg.GetChannelReservoirGates(ch1);
+        err = t.ExpectIntEq(reservoirs.Size(), 2, "ch1 has 2 reservoir gates");
+
+        Array<connection::Connection> screening = cfg.GetChannelScreeningGates(ch1);
+        err = t.ExpectIntEq(screening.Size(), 2, "ch1 has 2 screening gates");
+
+        connection::Connection r1 = reservoirs.GetIndex(0);
+        connection::Connection ohmic = cfg.GetAssociatedOhmic(r1);
+        err = t.ExpectStrEq(ohmic.Name(), "O1", "Associated ohmic for R1 is O1");
+        -> __end(runner, t);
+    }
+
+    state test_group_and_gname (TestRunner runner, TestContext t) {
+        Config cfg = Config.Load("device_config.yaml");
+        Array<channel::Channel> chs = cfg.GetCurrentChannels();
+        channel::Channel ch1 = chs.GetIndex(0);
+
+        gname::Gname gn1 = cfg.GetGname(ch1);
+        Error err = t.ExpectStrEq(gn1.gname(), "I_O1", "Gname for ch1 is I_O1");
+
+        Group grp = cfg.SelectGroup(gn1);
+        err = t.ExpectIntEq(grp.NumDots(), 2, "Group I_O1 has 2 dots");
+
+        connections::Connections group_plungers = grp.PlungerGates();
+        err = t.ExpectIntEq(group_plungers.Size(), 2, "Group I_O1 has 2 plungers");
+
+        connections::Connections group_order = grp.Order();
+        err = t.ExpectIntEq(group_order.Size(), 9, "Group I_O1 has 9 items in order");
+
+        err = t.ExpectIntEq(cfg.GetDotNumber(ch1), 2, "GetDotNumber for ch1 is 2");
+        -> __end(runner, t);
+    }
+
+    state test_wiring_and_constraints (TestRunner runner, TestContext t) {
+        Config cfg = Config.Load("device_config.yaml");
+        impedance::Impedances wiring = cfg.WiringDC();
+        Error err = t.ExpectIntEq(wiring.Size(), 19, "WiringDC has 19 entries");
+
+        connection::Connection p1 = connection::Connection.NewPlungerGate("P1");
+        impedance::Impedance imp = cfg.GetImpedance(p1);
+        err = t.ExpectFloatEq(imp.Resistance(), 1000.0, 1e-6, "P1 resistance is 1000.0");
+        err = t.ExpectFloatEq(imp.Capacitance(), 1.0e-12, 1e-18, "P1 capacitance is 1e-12");
+
+        VoltageConstraints vc = cfg.VoltageConstraints();
+        err = t.ExpectTrue(vc.Equal(vc), "VoltageConstraints equal itself");
+        -> __end(runner, t);
+    }
+
+    state test_config_json (TestRunner runner, TestContext t) {
+        Config cfg = Config.Load("device_config.yaml");
+        string json = cfg.ToJSON();
+        Config restored = Config.FromJSON(json);
+        Error err = t.ExpectIntEq(restored.NumUniqueChannels(), 2, "Restored config has 2 channels");
+        err = t.ExpectTrue(cfg.Equal(restored), "JSON roundtrip preserves Config");
+        -> __end(runner, t);
+    }
+}

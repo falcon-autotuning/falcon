@@ -1,0 +1,24 @@
+name: labelledDomain
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: domain
+    version: 1.0.0
+    local_path: "../domain/"
+  - name: connection
+    version: 1.0.0
+    local_path: "../../../physics/deviceStructures/connection/"
+  - name: symbolUnit
+    version: 1.0.0
+    local_path: "../../../physics/units/symbolUnit/"
+  - name: instrumentPort
+    version: 1.0.0
+    local_path: "../../../instrumentInterfaces/names/instrumentPort/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/labelled-domain-wrapper.so: sha256:f3c9726854e01b58c38fe410c3c0dd870d6d5f9dff9235387dd5a5325ce804b8
+

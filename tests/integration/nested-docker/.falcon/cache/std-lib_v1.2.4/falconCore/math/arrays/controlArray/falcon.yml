@@ -1,0 +1,17 @@
+name: controlArray
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: farray
+    version: 1.0.0
+    local_path: "../../../generic/farray/"
+  - name: increasingAlignment
+    version: 1.0.0
+    local_path: "../increasingAlignment/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/control-array-wrapper.so: sha256:d680b799c67e427f26fc0b7bb49a83411351064f260382b64bad93724a643b0f

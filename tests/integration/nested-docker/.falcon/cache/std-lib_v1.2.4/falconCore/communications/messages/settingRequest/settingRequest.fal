@@ -1,0 +1,18 @@
+import (
+"../../../instrumentInterfaces/names/ports/ports.fal"
+"../../../instrumentInterfaces/names/instrumentPort/instrumentPort.fal"
+"../../../math/quantity/quantity.fal"
+"../../../../collections/map/map.fal"
+)
+ffimport "setting-request-wrapper.cpp" ("-I/opt/falcon/include/") ("-L/opt/falcon/lib" "-lfalcon_core_cpp")
+routine SampleJSON () -> (string json)
+struct SettingRequest { 
+    routine New (string message, ports::Ports getters, map::Map<instrumentPort::InstrumentPort, quantity::Quantity> setters) -> (SettingRequest request)
+    routine Getters -> (ports::Ports ports)
+    routine Setters -> (map::Map<instrumentPort::InstrumentPort, quantity::Quantity> setters)
+    routine Equal (SettingRequest other) -> (bool equal)
+    routine NotEqual (SettingRequest other) -> (bool notequal)
+    routine FromJSON (string json) -> (SettingRequest request)
+    routine ToJSON -> (string json)
+    routine Message -> (string message)
+}

@@ -1,0 +1,29 @@
+import "../../../../testing/testing.fal";
+import "../waveform.fal";
+
+autotuner WaveformJSON -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_roundtrip (TestRunner runner, TestContext t) {
+        string sample     = SampleJSON();
+        Waveform orig     = Waveform.FromJSON(sample);
+        string   json     = orig.ToJSON();
+        Waveform restored = Waveform.FromJSON(json);
+        Error err = t.ExpectTrue(orig.Equal(restored), "Waveform JSON roundtrip preserves equality");
+        -> __end(runner, t);
+    }
+}
+
+autotuner WaveformListOps -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_size_and_empty (TestRunner runner, TestContext t) {
+        string sample = SampleJSON();
+        Waveform w = Waveform.FromJSON(sample);
+        Error err = t.ExpectFalse(w.IsEmpty(), "Waveform with transforms is not empty");
+        err = t.ExpectIntEq(1, w.Size(), "Waveform size is 1");
+        -> __end(runner, t);
+    }
+}

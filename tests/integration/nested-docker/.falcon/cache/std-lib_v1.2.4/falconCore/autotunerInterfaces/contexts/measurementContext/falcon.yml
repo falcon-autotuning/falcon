@@ -1,0 +1,17 @@
+name: measurementContext
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: connection
+    version: 1.0.0
+    local_path: "../../../physics/deviceStructures/connection/"
+  - name: instrumentPort
+    version: 1.0.0
+    local_path: "../../../instrumentInterfaces/names/instrumentPort/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/measurement-context-wrapper.so: sha256:ca3a5f828a1e653b4121f7f260da83a99feecbbd91b220b5462f2e80e0ca5105

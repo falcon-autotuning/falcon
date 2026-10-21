@@ -1,0 +1,17 @@
+name: labelledMeasuredArray1D
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: measuredArray
+    version: 1.0.0
+    local_path: "../measuredArray/"
+  - name: acquisitionContext
+    version: 1.0.0
+    local_path: "../../../autotunerInterfaces/contexts/acquisitionContext/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/labelled-measured-array-1D-wrapper.so: sha256:459f9182f04b093e7491840643af095fb88dd59e4fb478e7300074538bea16b2

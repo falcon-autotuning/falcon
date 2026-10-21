@@ -1,0 +1,86 @@
+import (
+"../../../physics/deviceStructures/connection/connection.fal"
+"../../../physics/units/symbolUnit/symbolUnit.fal"
+)
+ffimport "instrument-port-wrapper.cpp" ("-I/opt/falcon/include/") ("-L/opt/falcon/lib" "-lfalcon_core_cpp")
+
+struct Access {
+    routine NewReadAccess() -> (Access a)
+    routine NewWriteAccess() -> (Access a)
+    routine NewReadWriteAccess() -> (Access a)
+    routine IsReadAccess() -> (bool is_read)
+    routine IsWriteAccess() -> (bool is_write)
+    routine IsReadWriteAccess() -> (bool is_read_write)
+}
+struct Scope {
+    routine NewLocalScope() -> (Scope s)
+    routine NewGlobalScope() -> (Scope s)
+    routine IsLocalScope() -> (bool is_local)
+    routine IsGlobalScope() -> (bool is_global)
+}
+struct Instrument {
+    routine NewDcVoltageSource() -> (Instrument inst)
+    routine NewAmnmeter() -> (Instrument inst)
+    routine NewClock() -> (Instrument inst)
+    routine NewDiscrete() -> (Instrument inst)
+    routine IsDcVoltageSource() -> (bool correct)
+    routine IsAmnmeter() -> (bool correct)
+    routine IsClock() -> (bool correct)
+    routine IsDiscrete() -> (bool correct)
+}
+struct Characteristic {
+    routine NewNone() -> (Characteristic char)
+    routine IsNone() -> (bool correct)
+
+    routine NewSampleRate() -> (Characteristic char)
+    routine NewMaxSampleRate() -> (Characteristic char)
+    routine NewMinSampleRate() -> (Characteristic char)
+    routine IsSampleRate() -> (bool correct)
+    routine IsMaxSampleRate() -> (bool correct)
+    routine IsMinSampleRate() -> (bool correct)
+
+    routine NewNumberOfSamples() -> (Characteristic char)
+    routine NewMaxNumberOfSamples() -> (Characteristic char)
+    routine NewMinNumberOfSamples() -> (Characteristic char)
+    routine IsNumberOfSamples() -> (bool correct)
+    routine IsMaxNumberOfSamples() -> (bool correct)
+    routine IsMinNumberOfSamples() -> (bool correct)
+
+    routine NewSourceVoltage() -> (Characteristic char)
+    routine NewMaxSourceVoltage() -> (Characteristic char)
+    routine NewMinSourceVoltage() -> (Characteristic char)
+    routine IsSourceVoltage() -> (bool correct)
+    routine IsMaxSourceVoltage() -> (bool correct)
+    routine IsMinSourceVoltage() -> (bool correct)
+
+    routine NewVoltageRampSlope() -> (Characteristic char)
+    routine NewMaxVoltageRampSlope() -> (Characteristic char)
+    routine NewMinVoltageRampSlope() -> (Characteristic char)
+    routine IsVoltageRampSlope() -> (bool correct)
+    routine IsMaxVoltageRampSlope() -> (bool correct)
+    routine IsMinVoltageRampSlope() -> (bool correct)
+}
+struct InstrumentPort {
+    routine NewKnob (string default_name, connection::Connection conn = nil, symbolUnit::SymbolUnit units, string description, string instrument_name = "", Instrument inst) -> (InstrumentPort port)
+    routine NewMeter (string default_name, connection::Connection conn = nil, symbolUnit::SymbolUnit units, string description, string instrument_name = "", Instrument inst) -> (InstrumentPort port)
+    routine NewSetting (string default_name, connection::Connection conn = nil, symbolUnit::SymbolUnit units, string description, string instrument_name = "", Instrument inst, Scope scope, Access access, Characteristic char) -> (InstrumentPort port)
+    routine NewTimer -> (InstrumentPort port)
+    routine NewExecutionClock -> (InstrumentPort port)
+    routine DefaultName -> (string default_name)
+    routine InstrumentName -> (string instrument_name)
+    routine PsuedoName -> (connection::Connection conn)
+    routine InstrumentType -> (Instrument inst)
+    routine Scope() -> (Scope scope)
+    routine Access() -> (Access access)
+    routine Characteristic() -> (Characteristic char)
+    routine Units -> (symbolUnit::SymbolUnit units)
+    routine Description -> (string description)
+    routine InstrumentFacingName -> (string facing_name)
+    routine IsKnob -> (bool is_knob)
+    routine IsMeter -> (bool is_meter)
+    routine IsSetting -> (bool is_setting)
+    routine Equal (InstrumentPort other) -> (bool equal)
+    routine NotEqual (InstrumentPort other) -> (bool notequal)
+    routine FromJSON (string json) -> (InstrumentPort port)
+    routine ToJSON () -> (string json)
+}

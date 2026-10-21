@@ -1,0 +1,11 @@
+name: channel
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/channel-wrapper.so: sha256:24fc5a0306c59a28b6b850d01bb00964bb33cb42e0e575104d449a266168a1d1

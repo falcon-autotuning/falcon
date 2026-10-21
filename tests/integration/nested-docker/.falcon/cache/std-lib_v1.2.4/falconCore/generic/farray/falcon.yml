@@ -1,0 +1,11 @@
+name: farray
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../testing/"
+
+ffi:
+  build/farray-wrapper.so: sha256:61f99de8d253531ebe34844c479e94d3ae991ff5c32bbdfb6905f85dad60c3f0

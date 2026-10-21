@@ -1,0 +1,16 @@
+import (
+"../../../instrumentInterfaces/names/instrumentPort/instrumentPort.fal"
+"../../../math/quantity/quantity.fal"
+"../../../../collections/map/map.fal"
+)
+ffimport "setting-response-wrapper.cpp" ("-I/opt/falcon/include/") ("-L/opt/falcon/lib" "-lfalcon_core_cpp")
+routine SampleJSON () -> (string json)
+struct SettingResponse { 
+    routine New (string message, map::Map<instrumentPort::InstrumentPort, quantity::Quantity> getters) -> (SettingResponse response)
+    routine Getters -> (map::Map<instrumentPort::InstrumentPort, quantity::Quantity> getters)
+    routine Equal (SettingResponse other) -> (bool equal)
+    routine NotEqual (SettingResponse other) -> (bool notequal)
+    routine FromJSON (string json) -> (SettingResponse response)
+    routine ToJSON -> (string json)
+    routine Message -> (string message)
+}

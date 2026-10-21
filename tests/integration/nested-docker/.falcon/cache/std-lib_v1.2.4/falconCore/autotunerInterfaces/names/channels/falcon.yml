@@ -1,0 +1,17 @@
+name: channels
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: channel
+    version: 1.0.0
+    local_path: "../channel/"
+  - name: array
+    version: 1.0.0
+    local_path: "../../../../collections/array/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/channels-wrapper.so: sha256:f319c282471905674098de2b2eb04b015384d2d244b09c0c3e9161840552202b

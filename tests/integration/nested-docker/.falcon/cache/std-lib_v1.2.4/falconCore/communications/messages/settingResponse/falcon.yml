@@ -1,0 +1,23 @@
+name: settingResponse
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: instrumentPort
+    version: 1.0.0
+    local_path: "../../../instrumentInterfaces/names/instrumentPort/"
+  - name: quantity
+    version: 1.0.0
+    local_path: "../../../math/quantity/"
+  - name: map
+    version: 1.0.0
+    local_path: "../../../../collections/map/"
+  - name: array
+    version: 1.0.0
+    local_path: "../../../../collections/array/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/setting-response-wrapper.so: sha256:f3515572ee829904988b59084606a426ded6090ef4c2c150b387c6f8bbccc5e9

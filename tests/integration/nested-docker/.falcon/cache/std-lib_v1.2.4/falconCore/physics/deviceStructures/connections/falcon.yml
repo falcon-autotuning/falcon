@@ -1,0 +1,17 @@
+name: connections
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: connection
+    version: 1.0.0
+    local_path: "../connection/"
+  - name: array
+    version: 1.0.0
+    local_path: "../../../../collections/array/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/connections-wrapper.so: sha256:7c170f2550751547ca1f6b188778ad3bbde5d97703a3a3563a6b601c8d012225

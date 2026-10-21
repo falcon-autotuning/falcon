@@ -1,0 +1,37 @@
+import "../../../../../testing/testing.fal";
+import "../settingRequest.fal";
+import "../../../../instrumentInterfaces/names/ports/ports.fal";
+import "../../../../instrumentInterfaces/names/instrumentPort/instrumentPort.fal";
+import "../../../../math/quantity/quantity.fal";
+import "../../../../../collections/map/map.fal";
+
+autotuner SettingRequestJSON -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_roundtrip (TestRunner runner, TestContext t) {
+        string sample             = SampleJSON();
+        SettingRequest orig       = SettingRequest.FromJSON(sample);
+        string         json       = orig.ToJSON();
+        SettingRequest restored   = SettingRequest.FromJSON(json);
+        Error err = t.ExpectTrue(orig.Equal(restored), "SettingRequest JSON roundtrip");
+        -> __end(runner, t);
+    }
+
+    state test_message (TestRunner runner, TestContext t) {
+        string sample        = SampleJSON();
+        SettingRequest req   = SettingRequest.FromJSON(sample);
+        Error err = t.ExpectStrEq("test_msg", req.Message(), "SettingRequest.Message returns stored message");
+        -> __end(runner, t);
+    }
+
+    state test_new_and_getters (TestRunner runner, TestContext t) {
+        Array<instrumentPort::InstrumentPort> arr = Array.New();
+        Ports getters = Ports.New(arr);
+        Map<instrumentPort::InstrumentPort, quantity::Quantity> setters = Map.New();
+        SettingRequest req = SettingRequest.New("custom_msg", getters, setters);
+        Error err1 = t.ExpectStrEq("custom_msg", req.Message(), "Custom message matches");
+        Error err2 = t.ExpectTrue(req.Equal(req), "Self equality");
+        -> __end(runner, t);
+    }
+}

@@ -1,0 +1,63 @@
+import (
+  "../falconCore/communications/messages/measurementRequest/measurementRequest.fal"
+  "../falconCore/communications/messages/measurementResponse/measurementResponse.fal"
+  "../falconCore/communications/messages/settingRequest/settingRequest.fal"
+  "../falconCore/communications/messages/settingResponse/settingResponse.fal"
+  "../falconCore/communications/messages/voltageStatesResponse/voltageStatesResponse.fal"
+  "../falconCore/communications/voltageStates/deviceVoltageStates/deviceVoltageStates.fal"
+  "../falconCore/instrumentInterfaces/names/ports/ports.fal"
+  "../falconCore/physics/config/config.fal"
+  "../falconCore/physics/deviceStructures/connections/connections.fal"
+  "../falconCore/math/domains/coupledLabelledDomain/coupledLabelledDomain.fal"
+  "../falconCore/math/point/point.fal"
+)
+
+ffimport "hub-wrapper.cpp" ("-I/opt/falcon/include/") ("-L/opt/falcon/lib" "-lfalcon_core_cpp" "-lfalcon-routine")
+
+// ── Instrument Hub & Device Access ──────────────────────────────────────────
+
+// Query current device state from the instrument hub
+routine RequestDeviceState (int timeout_ms) -> (voltageStatesResponse::VoltageStatesResponse response)
+
+// Request a measurement from the instrument hub
+routine RequestMeasurement (measurementRequest::MeasurementRequest req, int timeout_ms) -> (measurementResponse::MeasurementResponse response)
+
+// Request a setting from the instrument hub
+routine RequestSetting (settingRequest::SettingRequest req, int timeout_ms) -> (settingResponse::SettingResponse response)
+
+// Request device config from the instrument hub
+routine RequestConfig (int timeout_ms) -> (config::Config config)
+
+// Request current port payload from the instrument hub (knobs, meters, settings)
+routine RequestPortPayload (int timeout_ms) -> (ports::Ports knobs, ports::Ports meters, ports::Ports settings)
+
+// ── Caching Operations ──────────────────────────────────────────────────────
+
+// Cache device voltages in the local database cache
+routine CacheDeviceVoltages (deviceVoltageStates::DeviceVoltageStates voltages) -> ()
+
+// Read current device voltages (checks cache first before querying hub)
+routine ReadDeviceVoltages (int timeout_ms) -> (deviceVoltageStates::DeviceVoltageStates voltages)
+
+// Cache config in the local database cache
+routine CacheConfig (config::Config config) -> ()
+
+// Read config (checks cache first before querying hub)
+routine ReadConfig (int timeout_ms) -> (config::Config config)
+
+// Get ohmics connected to voltage sources (cached)
+routine GetOhmicsConnectedToVoltageSources (int timeout_ms) -> (connections::Connections connections)
+
+// ── Safety & Sweep Computations ─────────────────────────────────────────────
+
+// Compute safe voltage bounds for a given search domain
+routine GetVoltageBounds (ports::Ports search_domain, int timeout_ms) -> (coupledLabelledDomain::CoupledLabelledDomain bounds)
+
+// Determine if proposed voltage state is safe according to device constraints
+routine SafeVoltageChange (point::Point proposed_voltages, int timeout_ms) -> (bool is_safe)
+
+// Execute a dedicated ramp to an endpoint voltage state
+routine Ramp (point::Point end_point, float max_ramp_rate, int timeout_ms) -> (bool success)
+
+// Check if a database connection URL is configured in the environment
+routine HasDatabaseConnection -> (bool connected)

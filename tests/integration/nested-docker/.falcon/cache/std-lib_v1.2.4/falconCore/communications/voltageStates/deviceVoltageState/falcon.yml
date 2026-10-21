@@ -1,0 +1,14 @@
+name: deviceVoltageState
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: connection
+    version: 1.0.0
+    local_path: "../../../physics/deviceStructures/connection/"
+  - name: symbolUnit
+    version: 1.0.0
+    local_path: "../../../physics/units/symbolUnit/"
+
+ffi:
+  build/device-voltage-state-wrapper.so: sha256:021e4a5b813f4e53ccb568c77a38a077b5553b025860960685df67162c2f32b4

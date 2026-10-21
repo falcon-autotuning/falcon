@@ -215,14 +215,14 @@ EOF
 
 HUB_LOG=/tmp/hub.log
 
-export MOCK_MULTIMETER_DATA_FILE="$TEST_DIR/gaussian_1d.txt"
+export MOCK_MULTIMETER_DATA_FILE="$TEST_DIR/gaussian-1d.txt"
 if [[ ! -f "$MOCK_MULTIMETER_DATA_FILE" ]]; then
   echo "❌ Missing mock data file: $MOCK_MULTIMETER_DATA_FILE"
   exit 1
 fi
 echo "Using mock multimeter data file: $MOCK_MULTIMETER_DATA_FILE"
 
-instrument-hub --config "$TEST_DIR/hub_config.yaml" >$HUB_LOG 2>&1 &
+instrument-hub --config "$HUB_CONFIG" >"$HUB_LOG" 2>&1 &
 HUB_PID=$!
 sleep 3
 
@@ -247,7 +247,7 @@ export NATS_URL=nats://$NATS_HOST:$NATS_PORT
 
 TEST_LOG=/tmp/falcon-test.log
 
-if falcon-test ./test_1d_trace.fal 2>&1 | tee "$TEST_LOG"; then
+if falcon-test "$TEST_DIR/test_1d_trace.fal" 2>&1 | tee "$TEST_LOG"; then
   echo "✅ WELLNESS CHECK COMPLETED SUCCESSFULLY!"
 else
   echo "❌ falcon-test failed"

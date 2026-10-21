@@ -1,0 +1,14 @@
+name: controlArray1D
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: controlArray
+    version: 1.0.0
+    local_path: "../controlArray/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/control-array-1D-wrapper.so: sha256:d764ce8b949998412b54d322c2cd1cae345cd9e3658834f208424e567ce98da4

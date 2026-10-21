@@ -1,0 +1,26 @@
+name: settingRequest
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: ports
+    version: 1.0.0
+    local_path: "../../../instrumentInterfaces/names/ports/"
+  - name: instrumentPort
+    version: 1.0.0
+    local_path: "../../../instrumentInterfaces/names/instrumentPort/"
+  - name: quantity
+    version: 1.0.0
+    local_path: "../../../math/quantity/"
+  - name: map
+    version: 1.0.0
+    local_path: "../../../../collections/map/"
+  - name: array
+    version: 1.0.0
+    local_path: "../../../../collections/array/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/setting-request-wrapper.so: sha256:a9c8148217f30a2560ed4a5d0a0475278ba8d1e452dd366bedcdac9393823bfb

@@ -1,0 +1,20 @@
+name: unitSpace
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: discretizer
+    version: 1.0.0
+    local_path: "../discreteSpaces/discretizer/"
+  - name: domain
+    version: 1.0.0
+    local_path: "../domains/domain/"
+  - name: axes
+    version: 1.0.0
+    local_path: "../axes/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../testing/"
+
+ffi:
+  build/unit-space-wrapper.so: sha256:5d2ead3f20c33e08eed97958d8f69b87015080f587ae7dae5b39b2cf9901a08a

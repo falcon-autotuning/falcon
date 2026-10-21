@@ -1,0 +1,17 @@
+name: portTransforms
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: portTransform
+    version: 1.0.0
+    local_path: "../portTransform/"
+  - name: array
+    version: 1.0.0
+    local_path: "../../../../collections/array/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/port-transforms-wrapper.so: sha256:226cca6fd8320e314eb346063bd35c97b8ef7440271b5fe8547d522d7c12f9d0

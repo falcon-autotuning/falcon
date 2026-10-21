@@ -1,0 +1,11 @@
+name: standardRequest
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/standard-request-wrapper.so: sha256:d155941e36de55516d25f138cd7a9f90189c4f6ad7df0f55fefbf0a5c030ef9f

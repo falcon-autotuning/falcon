@@ -1,0 +1,11 @@
+name: array
+version: 1.0.0
+maintainer: Falcon Team
+github: falcon-autotuning/std-lib
+license: ""
+ffi:
+  build/array-wrapper.so: sha256:45cb92e52e84a6911251930e1a2338ab300d77495b326c85ad5340b38b88e0c9
+dependencies:
+  - name: testing
+    version: 1.0.0
+    local_path: "../../testing/"

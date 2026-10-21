@@ -1,0 +1,83 @@
+import (
+"../../../collections/array/array.fal"
+"../deviceStructures/connection/connection.fal"
+"../deviceStructures/connections/connections.fal"
+"../deviceStructures/impedance/impedance.fal"
+"../../autotunerInterfaces/names/channel/channel.fal"
+"../../autotunerInterfaces/names/channels/channels.fal"
+"../../autotunerInterfaces/names/gname/gname.fal"
+"../../generic/farray/farray.fal"
+)
+ffimport "config-wrapper.cpp" ("-I/opt/falcon/include/") ("-L/opt/falcon/lib" "-lfalcon-core")
+
+struct Adjacency {
+    routine Equal (Adjacency other) -> (bool equal)
+    routine NotEqual (Adjacency other) -> (bool notequal)
+    routine ToJSON () -> (string json)
+    routine FromJSON (string json) -> (Adjacency adj)
+}
+
+struct VoltageConstraints {
+    routine Matrix () -> (farray::FArray mat)
+    routine Limits () -> (farray::FArray lims)
+    routine Adjacency () -> (Adjacency adj)
+    routine Equal (VoltageConstraints other) -> (bool equal)
+    routine NotEqual (VoltageConstraints other) -> (bool notequal)
+    routine ToJSON () -> (string json)
+    routine FromJSON (string json) -> (VoltageConstraints vc)
+}
+
+struct Group {
+    routine Name () -> (channel::Channel name)
+    routine NumDots () -> (int num_dots)
+    routine ScreeningGates () -> (connections::Connections gates)
+    routine ReservoirGates () -> (connections::Connections gates)
+    routine PlungerGates () -> (connections::Connections gates)
+    routine BarrierGates () -> (connections::Connections gates)
+    routine Ohmics () -> (connections::Connections ohmics)
+    routine Order () -> (connections::Connections order)
+    routine Equal (Group other) -> (bool equal)
+    routine NotEqual (Group other) -> (bool notequal)
+    routine ToJSON () -> (string json)
+    routine FromJSON (string json) -> (Group g)
+}
+
+struct Config {
+    routine Load (string config_path) -> (Config config)
+    routine NumUniqueChannels () -> (int count)
+    routine Channels () -> (channels::Channels chs)
+    routine GetCurrentChannels () -> (Array<channel::Channel> channels)
+    routine GetChannelPlungerGates (channel::Channel ch) -> (Array<connection::Connection> gates)
+    routine GetChannelBarrierGates (channel::Channel ch) -> (Array<connection::Connection> gates)
+    routine GetChannelReservoirGates (channel::Channel ch) -> (Array<connection::Connection> gates)
+    routine GetChannelScreeningGates (channel::Channel ch) -> (Array<connection::Connection> gates)
+    routine GetChannelDotGates (channel::Channel ch) -> (Array<connection::Connection> gates)
+    routine GetChannelGates (channel::Channel ch) -> (Array<connection::Connection> gates)
+    routine GetChannelOhmics (channel::Channel ch) -> (Array<connection::Connection> ohmics)
+    routine GetAssociatedOhmic (connection::Connection reservoir_gate) -> (connection::Connection ohmic)
+    routine GetGname (channel::Channel ch) -> (gname::Gname gn)
+    routine GetGroupPlungerGates (gname::Gname gn) -> (connections::Connections gates)
+    routine GetGroupBarrierGates (gname::Gname gn) -> (connections::Connections gates)
+    routine GetGroupReservoirGates (gname::Gname gn) -> (connections::Connections gates)
+    routine GetGroupScreeningGates (gname::Gname gn) -> (connections::Connections gates)
+    routine GetGroupDotGates (gname::Gname gn) -> (connections::Connections gates)
+    routine GetGroupGates (gname::Gname gn) -> (connections::Connections gates)
+    routine HasChannel (channel::Channel ch) -> (bool has)
+    routine HasGname (gname::Gname gn) -> (bool has)
+    routine GetDotNumber (channel::Channel ch) -> (int count)
+    routine SelectGroup (gname::Gname gn) -> (Group g)
+    routine GetAllGnames () -> (Array<gname::Gname> gnames)
+    routine OhmicInChargeSensor (connection::Connection ohmic) -> (bool in_sensor)
+    routine GetImpedance (connection::Connection conn) -> (impedance::Impedance imp)
+    routine VoltageConstraints () -> (VoltageConstraints vc)
+    routine WiringDC () -> (impedance::Impedances wiring)
+    routine Equal (Config other) -> (bool equal)
+    routine NotEqual (Config other) -> (bool notequal)
+    routine ToJSON () -> (string json)
+    routine FromJSON (string json) -> (Config config)
+}
+
+struct Loader {
+    routine New (string config_path) -> (Loader l)
+    routine Config () -> (Config config)
+}

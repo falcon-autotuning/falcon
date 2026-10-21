@@ -1,0 +1,17 @@
+name: measuredArray
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: farray
+    version: 1.0.0
+    local_path: "../../../generic/farray/"
+  - name: increasingAlignment
+    version: 1.0.0
+    local_path: "../increasingAlignment/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/measured-array-wrapper.so: sha256:5a71e594a71ab8db6e9fc8152bf7af40e11a22fc643108f4e9967d75a5949107

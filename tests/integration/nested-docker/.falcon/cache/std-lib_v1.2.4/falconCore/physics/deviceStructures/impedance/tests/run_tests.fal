@@ -1,0 +1,62 @@
+// Tests for falcon_core/physics/deviceStructures/impedance
+// Run with: falcon-test run_tests.fal
+import "../../../../../testing/testing.fal";
+import "../../connection/connection.fal";
+import "../impedance.fal";
+
+autotuner ImpedanceTests -> (int passed, int failed) {
+    passed = 0; failed = 0;
+    start -> __init;
+
+    state test_impedance_new (TestRunner runner, TestContext t) {
+        Connection p1 = Connection.NewPlungerGate("P1");
+        Impedance imp = Impedance.New(p1, 1000.0, 1.0e-12);
+        
+        Connection c = imp.GetConnection();
+        Error err = t.ExpectStrEq(c.Name(), "P1", "Connection name is P1");
+        err = t.ExpectFloatEq(imp.Resistance(), 1000.0, 1e-6, "Resistance is 1000.0");
+        err = t.ExpectFloatEq(imp.Capacitance(), 1.0e-12, 1e-18, "Capacitance is 1e-12");
+        -> __end(runner, t);
+    }
+
+    state test_impedance_equality (TestRunner runner, TestContext t) {
+        Connection p1 = Connection.NewPlungerGate("P1");
+        Impedance imp1 = Impedance.New(p1, 1000.0, 1.0e-12);
+        Impedance imp2 = Impedance.New(p1, 1000.0, 1.0e-12);
+        Impedance imp3 = Impedance.New(p1, 2000.0, 1.0e-12);
+
+        Error err = t.ExpectTrue(imp1.Equal(imp2), "imp1 equals imp2");
+        err = t.ExpectTrue(imp1.NotEqual(imp3), "imp1 not equals imp3");
+        -> __end(runner, t);
+    }
+
+    state test_impedances_container (TestRunner runner, TestContext t) {
+        Connection p1 = Connection.NewPlungerGate("P1");
+        Connection b1 = Connection.NewBarrierGate("B1");
+        Impedance imp1 = Impedance.New(p1, 1000.0, 1.0e-12);
+        Impedance imp2 = Impedance.New(b1, 500.0, 2.0e-12);
+
+        Array<Impedance> arr = Array.New();
+        arr.PushBack(imp1);
+        arr.PushBack(imp2);
+
+        Impedances imps = Impedances.New(arr);
+        Error err = t.ExpectIntEq(imps.Size(), 2, "Size is 2");
+        err = t.ExpectFalse(imps.IsEmpty(), "IsEmpty is false");
+        err = t.ExpectTrue(imps.Contains(imp1), "Contains imp1");
+        err = t.ExpectIntEq(imps.Index(imp2), 1, "Index of imp2 is 1");
+
+        Impedance fetched = imps.GetIndex(0);
+        err = t.ExpectTrue(fetched.Equal(imp1), "GetIndex(0) returns imp1");
+        -> __end(runner, t);
+    }
+
+    state test_json_roundtrip (TestRunner runner, TestContext t) {
+        Connection p1 = Connection.NewPlungerGate("P1");
+        Impedance imp = Impedance.New(p1, 1000.0, 1.0e-12);
+        string json = imp.ToJSON();
+        Impedance restored = Impedance.FromJSON(json);
+        Error err = t.ExpectTrue(imp.Equal(restored), "JSON roundtrip preserves Impedance");
+        -> __end(runner, t);
+    }
+}

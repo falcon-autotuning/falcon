@@ -1,0 +1,11 @@
+name: domain
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/domain-wrapper.so: sha256:3a39f8f73bcf8015ee3f0b1ac9492771a38c9031d5d8b8a8ff6c38e0a588bf11

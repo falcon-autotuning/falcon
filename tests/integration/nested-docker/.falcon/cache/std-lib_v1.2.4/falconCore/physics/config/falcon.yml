@@ -1,0 +1,35 @@
+name: config
+version: 1.0.0
+maintainer: falcon-devs
+github: ""
+license: ""
+ffi:
+  build/config-wrapper.so: sha256:4e9551bf6740e11b0b8e6a1c9c18a0ba7e32cf19486346dd172a3b0b0c519b29
+dependencies:
+  - name: connection
+    version: 1.0.0
+    local_path: ../deviceStructures/connection/
+  - name: connections
+    version: 1.0.0
+    local_path: ../deviceStructures/connections/
+  - name: impedance
+    version: 1.0.0
+    local_path: ../deviceStructures/impedance/
+  - name: channel
+    version: 1.0.0
+    local_path: ../../autotunerInterfaces/names/channel/
+  - name: channels
+    version: 1.0.0
+    local_path: ../../autotunerInterfaces/names/channels/
+  - name: gname
+    version: 1.0.0
+    local_path: ../../autotunerInterfaces/names/gname/
+  - name: farray
+    version: 1.0.0
+    local_path: ../../generic/farray/
+  - name: array
+    version: 1.0.0
+    local_path: ../../../collections/array/
+  - name: testing
+    version: 1.0.0
+    local_path: ../../../testing/

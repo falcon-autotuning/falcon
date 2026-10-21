@@ -1,0 +1,12 @@
+name: map
+version: 1.0.0
+description: "Generic key-value map"
+maintainer: "Falcon Team"
+github: "falcon-autotuning/std-lib"
+dependencies:
+  - name: array
+    version: 1.0.0
+    local_path: "../array/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../testing/"

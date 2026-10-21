@@ -1,0 +1,33 @@
+import (
+"../../../../collections/array/array.fal"
+"../connection/connection.fal"
+)
+ffimport "impedance-wrapper.cpp" ("-I/opt/falcon/include/") ("-L/opt/falcon/lib" "-lfalcon-core")
+struct Impedance {
+    routine New (Connection conn, float resistance, float capacitance) -> (Impedance imp)
+    routine GetConnection () -> (Connection conn)
+    routine Resistance () -> (float r)
+    routine Capacitance () -> (float c)
+    routine Equal (Impedance other) -> (bool equal)
+    routine NotEqual (Impedance other) -> (bool notequal)
+    routine FromJSON (string json) -> (Impedance imp)
+    routine ToJSON () -> (string json)
+}
+
+struct Impedances {
+    routine New (Array<Impedance> imps) -> (Impedances out)
+    routine Size () -> (int size)
+    routine IsEmpty () -> (bool empty)
+    routine GetIndex (int index) -> (Impedance value)
+    routine PushBack (Impedance value) -> ()
+    routine Insert (int index, Impedance value) -> ()
+    routine Contains (Impedance value) -> (bool found)
+    routine Index (Impedance value) -> (int index)
+    routine Items () -> (Array<Impedance> items)
+    routine Clear () -> ()
+    routine Erase (int index) -> ()
+    routine Equal (Impedances other) -> (bool equal)
+    routine NotEqual (Impedances other) -> (bool notequal)
+    routine FromJSON (string json) -> (Impedances imps)
+    routine ToJSON () -> (string json)
+}

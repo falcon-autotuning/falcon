@@ -1,0 +1,14 @@
+name: voltageStatesResponse
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: deviceVoltageStates
+    version: 1.0.0
+    local_path: "../../voltageStates/deviceVoltageStates/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/voltage-states-response-wrapper.so: sha256:8214d5b533db2b34845f8b7a52536d0544ad89cda71627932b7854710724afd4

@@ -1,0 +1,17 @@
+name: discreteSpace
+version: 1.0.0
+maintainer: "falcon-devs"
+github: ""
+dependencies:
+  - name: unitSpace
+    version: 1.0.0
+    local_path: "../../unitSpace/"
+  - name: coupledLabelledDomain
+    version: 1.0.0
+    local_path: "../../domains/coupledLabelledDomain/"
+  - name: testing
+    version: 1.0.0
+    local_path: "../../../../testing/"
+
+ffi:
+  build/discrete-space-wrapper.so: sha256:c93c0f4a85d5302b589b3e6431208e0f5e2442d84812ccf5a16e368aec04d9d0
