@@ -97,6 +97,7 @@ set(INSTALL_LIB_DIR "lib")
 set(INSTALL_INCLUDE_DIR "include")
 set(INSTALL_SHARE_DIR "share")
 set(INSTALL_DOC_DIR "doc")
+set(INSTALL_WELLNESS_DIR "wellness")
 
 # ============================================================================
 # Install Targets
@@ -107,6 +108,39 @@ install(
     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
     "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
   DESTINATION "${INSTALL_DOC_DIR}"
+)
+
+# ============================================================================
+# Install wellness
+# ============================================================================
+
+# NOTE: This wellness check is a .sh so will not run on Windows
+install(
+  PROGRAMS
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/wellness-check.sh"
+  DESTINATION
+    "${INSTALL_WELLNESS_DIR}"
+)
+install(
+  FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/CMakeLists.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/2-dot-1-chargesensor.yml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/gaussian-1d.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/mock_meter_api.yml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/mock_meter_config.yml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/mock_source_api.yml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/mock_source_config.yml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/test_1d_trace.fal"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/plugin-helpers.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/mock-multimeter.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/mock-voltage-source.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/get_number_of_samples.lua"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/get_source_voltage.lua"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/measure_1D_buffered.lua"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/set_number_of_samples.lua"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/nested-docker/set_source_voltage.lua"
+  DESTINATION
+    "${INSTALL_WELLNESS_DIR}"
 )
 
 # ============================================================================
