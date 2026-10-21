@@ -108,32 +108,37 @@ if [ "$PLATFORM" != "windows" ] && [ "$EUID" -ne 0 ]; then
   fi
 fi
 
-# Load Docker image if not present
-if ! docker image inspect falcon:latest &>/dev/null; then
+# Check if Docker daemon is accessible and image loading is desired
+if [ "${FALCON_SKIP_DOCKER_LOAD:-0}" = "1" ]; then
+  echo "⏩ Skipping Docker image loading (FALCON_SKIP_DOCKER_LOAD=1)."
+elif ! command -v docker &>/dev/null; then
+  echo "⚠️ Docker command not found. Skipping Docker image loading."
+elif ! docker info &>/dev/null; then
+  echo "⚠️ Docker daemon is not running or accessible. Skipping Docker image loading."
+elif ! docker image inspect falcon:latest &>/dev/null; then
   echo "🐳 Docker image falcon:latest not found locally."
   echo "⏳ Downloading Docker image tarball..."
 
-  IMAGE_URL="$RELEASE_URL/falcon-cli-image.tar.gz"
+  IMAGE_URL="$RELEASE_URL/falcon-image-${RELEASE_VERSION}.tar.gz"
   TEMP_IMAGE="$(mktemp)" || {
     echo "❌ Failed to create temporary file for Docker image"
     exit 1
   }
 
   echo "📥 Fetching $IMAGE_URL..."
-  if curl -fsSL "$IMAGE_URL" -o "$TEMP_IMAGE"; then
-    echo "⏳ Loading Docker image into daemon (this may take a while)..."
-    if ! docker load -i "$TEMP_IMAGE"; then
-      echo "❌ Failed to load Docker image."
-      rm -f "$TEMP_IMAGE"
-      exit 1
-    fi
-    rm -f "$TEMP_IMAGE"
-    echo "✅ Docker image loaded successfully!"
-  else
+  if ! curl -fsSL "$IMAGE_URL" -o "$TEMP_IMAGE"; then
     echo "❌ Failed to download Docker image tarball from $IMAGE_URL"
     rm -f "$TEMP_IMAGE"
     exit 1
   fi
+  echo "⏳ Loading Docker image into daemon (this may take a while)..."
+  if ! docker load -i "$TEMP_IMAGE"; then
+    echo "❌ Failed to load Docker image."
+    rm -f "$TEMP_IMAGE"
+    exit 1
+  fi
+  rm -f "$TEMP_IMAGE"
+  echo "✅ Docker image loaded successfully!"
 else
   echo "🐳 Docker image falcon:latest already cached locally."
 fi
@@ -193,7 +198,7 @@ if [ "$PLATFORM" = "windows" ]; then
   fi
 else
   BIN_DIR="$INSTALL_DIR/bin"
-  REAL_USER="${SUDO_USER:-$USER}"
+  REAL_USER="${SUDO_USER:-${USER:-$(id -un 2>/dev/null || whoami 2>/dev/null || echo "root")}}"
   REAL_HOME="$(eval echo "~$REAL_USER")"
 
   updated=0
