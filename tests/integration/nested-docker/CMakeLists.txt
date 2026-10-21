@@ -8,7 +8,7 @@ add_library(plugin-helpers INTERFACE)
 
 target_include_directories(plugin-helpers
   INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugin-helpers.h
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_instrument_plugin(mock_multimeter
