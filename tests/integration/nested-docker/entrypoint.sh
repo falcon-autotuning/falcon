@@ -33,6 +33,15 @@ echo "✅ instrument-controller installation verified!"
 echo "Checking falcon installation..."
 which falcon-run
 which falcon-test
+
+falcon-run --help >/dev/null 2>&1 || {
+  echo "❌ falcon-run failed to run"
+  exit 1
+}
+falcon-test --help >/dev/null 2>&1 || {
+  echo "❌ falcon-test failed to run"
+  exit 1
+}
 echo "✅ falcon installation verified!"
 
 echo "=========================================================="
@@ -53,6 +62,10 @@ HUB_WORKDIR="/tmp/hub-workdir"
 mkdir -p "$HUB_WORKDIR"
 
 HUB_CONFIG="$BUILD_DIR/hub_config.yaml"
+
+export INSTRUMENT_SCRIPT_SERVER_RPC_PORT=5555
+NATS_PORT=4222
+NATS_HOST=127.0.0.1
 
 cat >"$HUB_CONFIG" <<EOF
 wiremap:
@@ -157,8 +170,8 @@ quantum-dot-config: $TEST_DIR/2-dot-1-chargesensor.yml
 initial-voltage-state: []
 
 nats:
-  host: 127.0.0.1
-  port: 4222
+  host: $NATS_HOST 
+  port: $NATS_PORT 
 
 database:
   owner: wellness-test
@@ -168,7 +181,7 @@ working-directory: $HUB_WORKDIR
 user-measurement-luas: $TEST_DIR
 
 instrument-server:
-  rpc-port: 5555
+  rpc-port: $INSTRUMENT_SCRIPT_SERVER_RPC_PORT 
   autostart: true
 
   instruments:
@@ -189,7 +202,6 @@ instrument-server:
         - identifier: sample_rate
           writeCommand:
             command: SET_SAMPLE_RATE
-
         - identifier: number_of_samples
           readCommand:
             command: GET_BINS
@@ -208,7 +220,14 @@ echo " (3/3) Starting Falcon Instrument Hub (Core Services)"
 echo "=========================================================="
 export LD_LIBRARY_PATH="/opt/instrument-controller/lib:$BUILD_DIR:${LD_LIBRARY_PATH:-}"
 
-instrument-hub start --hub-config "$TEST_DIR/hub_config.yaml" >/tmp/hub.log 2>&1 &
+export MOCK_MULTIMETER_DATA_FILE="$TEST_DIR/gaussian_1d.txt"
+if [[ ! -f "$MOCK_MULTIMETER_DATA_FILE" ]]; then
+  echo "❌ Missing mock data file: $MOCK_MULTIMETER_DATA_FILE"
+  exit 1
+fi
+echo "Using mock multimeter data file: $MOCK_MULTIMETER_DATA_FILE"
+
+instrument-hub --config "$TEST_DIR/hub_config.yaml" >/tmp/hub.log 2>&1 &
 HUB_PID=$!
 sleep 3
 
@@ -228,6 +247,8 @@ echo "✅ Falcon Instrument Hub is running (pid=$HUB_PID)."
 echo "=========================================================="
 echo " Launching Wellness Check"
 echo "=========================================================="
+
+export NATS_URL=nats://$NATS_HOST:$NATS_PORT
 
 TEST_LOG=/tmp/falcon-test.log
 
