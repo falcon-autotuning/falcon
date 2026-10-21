@@ -83,8 +83,9 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         // Build measurement axes
         Array<LabelledDomain> firstDimension = Array.New();
         firstDimension.PushBack(LabelledDomain.FromPort(0.1, -0.1, p1, true, true));
+        CoupledLabelledDomain coupled1d = CoupledLabelledDomain.New(firstDimension);
         Axes<CoupledLabelledDomain> domainAxes = Axes.New();
-        domainAxes.PushBack(firstDimension);
+        domainAxes.PushBack(coupled1d);
 
         // Build the divisions 
         Axes<int> divisions = Axes.New();
@@ -103,9 +104,10 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         Waveform waveform = Waveform.NewCartesianIdentityWaveform(divisions, domainAxes, increasing, domain);
         Array<Waveform> waveforms = Array.New();
         waveforms.PushBack(waveform);
-        Ports getters = Ports.New();
-        getters.PushBack(o1);
-        LabelledDomain timeDomain = LabelledDomain.NewFromPort(1.0, 0.0, instrumentPort.NewExecutionClock(), true, true);
+        Array<InstrumentPort> rawGetters = Array.New();
+        rawGetters.PushBack(o1);
+        Ports getters = Ports.New(rawGetters);
+        LabelledDomain timeDomain = LabelledDomain.FromPort(1.0, 0.0, InstrumentPort.NewExecutionClock(), true, true);
         Array<PortTransform> rawtransforms = Array.New();
         PortTransforms transforms = PortTransforms.New(rawtransforms);
 
