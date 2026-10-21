@@ -11,17 +11,32 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
     start -> __init;
 
     state test_1d_measurement (TestRunner runner, TestContext t) {
-        ports::Ports knobs; 
-        ports::Ports meters; 
-        ports::Ports settings;
-        knobs, meters, settings = hub::RequestPortPayload(10000)
+        Ports knobs; 
+        Ports meters; 
+        Ports settings;
+        knobs, meters, settings = hub.RequestPortPayload(10000);
+
+        // Construct port query for knob P1 
+        PortQuery query = PortQuery.New();
+        Connection c = Connection.NewPlungerGate("P1");
+        query.SetConnection(c);
+        Instrument inst = Instrument.NewDcVoltageSource();
+        query.SetInstrument(inst);
+
+        // Check if match 
+        Error err = knobs.IsQueryMatch(query)
+        if (err != nil ) {
+            -> fail
+        }
+
+
 
         // Construct measurement request for 1D sweep
         string req_json = "{\"command\":\"measure_1D_buffered\",\"setter\":\"P1\",\"getter\":\"M1\",\"voltages\":[0.0,0.1,0.2,0.3,0.4,0.5],\"sample_rate\":1000}";
         measurementRequest::MeasurementRequest req = measurementRequest::MeasurementRequest.FromJSON(req_json);
 
         // Dispatch measurement to falcon-instrument-hub over NATS
-        measurementResponse::MeasurementResponse resp = RequestMeasurement(req, 10000);
+        measurementResponse::MeasurementResponse resp = hub.RequestMeasurement(req, 10000);
 
         // Verify status
         Error err_status = t.ExpectStrEq(resp.Status(), "OK", "Measurement completed with OK status");
