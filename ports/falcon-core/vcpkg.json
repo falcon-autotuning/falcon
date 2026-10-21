@@ -1,6 +1,6 @@
 {
   "name": "falcon-core",
-  "version": "1.2.18",
+  "version": "1.2.19",
   "license": "BSD-3-Clause",
   "features": {
     "c-api": {
