@@ -11,7 +11,7 @@ WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 echo "=========================================================="
 echo " Building Ubuntu 26 Outer Target Container"
 echo "=========================================================="
-IMAGE_TAG="instrument-controller-target:ubuntu26"
+IMAGE_TAG="falcon-wellness-check:ubuntu26"
 
 docker build \
   -t "$IMAGE_TAG" \
@@ -21,8 +21,14 @@ docker build \
 echo "=========================================================="
 echo " Executing End-to-End Test & Wellness Check in Outer Container"
 echo "=========================================================="
-docker run --rm \
+# docker run --rm \
+#   --network host \
+#   -v /var/run/docker.sock:/var/run/docker.sock \
+#   -v "$WORKSPACE_ROOT:/workspace" \
+#   "$IMAGE_TAG"
+docker run --rm -it \
   --network host \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v "$WORKSPACE_ROOT:/workspace" \
+  --entrypoint bash \
   "$IMAGE_TAG"
