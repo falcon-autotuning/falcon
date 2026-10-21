@@ -34,7 +34,8 @@ ENV LD_LIBRARY_PATH="/opt/falcon/lib:/opt/instrument-controller/lib:${LD_LIBRARY
 WORKDIR /workspace
 
 # Entrypoint script coordinates starting services and invoking the inner Falcon container
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/wellness-check.sh
+RUN chmod +x /usr/local/bin/wellness-check.sh
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/wellness-check.sh"]
+CMD ["/workspace"]

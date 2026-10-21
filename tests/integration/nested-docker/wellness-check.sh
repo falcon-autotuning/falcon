@@ -1,12 +1,32 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Entrypoint for Ubuntu 26 Outer Target Container
-# Sets up instrument plugins, starts NATS + ISS + Hub, and triggers inner Falcon container
-# Doubles as a wellness check for fresh installs of instrument-controller and falcon
+# Falcon / Instrument Controller Wellness Check
+#
+# Validates a fresh Falcon and Instrument Controller installation by:
+#   1. Verifying required binaries are available.
+#   2. Building mock instrument plugins.
+#   3. Launching a temporary instrument-hub instance.
+#   4. Running an end-to-end Falcon measurement test.
+#
+# Usage:
+#   ./wellness-check.sh <workspace>
+#
+# Examples:
+#   ./wellness-check.sh ~/falcon
+#
+#   WORKSPACE=~/falcon ./wellness-check.sh
+#
+# When run inside Docker, /workspace is used by default.
 # =============================================================================
 set -euo pipefail
 
-WORKSPACE="${WORKSPACE:-/workspace}"
+WORKSPACE="${1:-${WORKSPACE:-/workspace}}"
+if [[ ! -d "$WORKSPACE" ]]; then
+  echo "❌ Workspace does not exist: $WORKSPACE"
+  exit 1
+fi
+echo "Using workspace: $WORKSPACE"
+
 TEST_DIR="$WORKSPACE/tests/integration/nested-docker"
 BUILD_DIR="$TEST_DIR/build"
 mkdir -p "$BUILD_DIR" /tmp/measurements /tmp/hub-workdir
@@ -52,7 +72,6 @@ echo "=========================================================="
 
 cmake \
   -DCMAKE_FIND_DEBUG_MODE=ON \
-  -Dinstrument-data_DIR=/opt/instrument-controller/share \
   -S "$TEST_DIR" \
   -B "$BUILD_DIR"
 
