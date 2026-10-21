@@ -1,9 +1,0 @@
-name: testing
-version: 1.0.0
-maintainer: falcon-devs
-github: falcon-autotuning/std-lib
-license: ""
-ffi:
-  build/testing-wrapper.so: sha256:0323f59d73e5efa8961edfc79dce3c5aab9d7640d7d4f2838591de2c70f2600f
-dependencies:
-  []
