@@ -113,55 +113,57 @@ install(
 # Install vcpkg dependencies
 # ============================================================================
 if(WIN32)
+  file(GLOB WIN_BINS
+    "${VCPKG_INSTALLED_DIR}/x64-win-llvm/bin/*")
+
   install(
-    DIRECTORY
-      "${VCPKG_INSTALLED_DIR}/x64-win-llvm/bin/"
-    DESTINATION
-      "${INSTALL_BIN_DIR}"
+    PROGRAMS ${WIN_BINS}
+    DESTINATION "${INSTALL_BIN_DIR}"
   )
+
   install(
     DIRECTORY
       "${VCPKG_INSTALLED_DIR}/x64-win-llvm/lib/"
-    DESTINATION
-      "${INSTALL_LIB_DIR}"
+    DESTINATION "${INSTALL_LIB_DIR}"
   )
+
   install(
     DIRECTORY
       "${VCPKG_INSTALLED_DIR}/x64-win-llvm/include/"
-    DESTINATION
-      "${INSTALL_INCLUDE_DIR}"
+    DESTINATION "${INSTALL_INCLUDE_DIR}"
   )
+
   install(
     DIRECTORY
       "${VCPKG_INSTALLED_DIR}/x64-win-llvm/share/"
-    DESTINATION
-      "${INSTALL_SHARE_DIR}"
+    DESTINATION "${INSTALL_SHARE_DIR}"
     PATTERN "*-targets-debug.cmake" EXCLUDE
   )
 else()
+  file(GLOB LINUX_BINS
+    "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/bin/*")
+
   install(
-    DIRECTORY
-      "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/bin/"
-    DESTINATION
-      "${INSTALL_BIN_DIR}"
+    PROGRAMS ${LINUX_BINS}
+    DESTINATION "${INSTALL_BIN_DIR}"
   )
+
   install(
     DIRECTORY
       "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/lib/"
-    DESTINATION
-      "${INSTALL_LIB_DIR}"
+    DESTINATION "${INSTALL_LIB_DIR}"
   )
+
   install(
     DIRECTORY
       "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/include/"
-    DESTINATION
-      "${INSTALL_INCLUDE_DIR}"
+    DESTINATION "${INSTALL_INCLUDE_DIR}"
   )
+
   install(
     DIRECTORY
       "${VCPKG_INSTALLED_DIR}/x64-linux-dynamic/share/"
-    DESTINATION
-      "${INSTALL_SHARE_DIR}"
+    DESTINATION "${INSTALL_SHARE_DIR}"
     PATTERN "*-targets-debug.cmake" EXCLUDE
   )
 endif()
