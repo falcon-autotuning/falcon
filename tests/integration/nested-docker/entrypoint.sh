@@ -51,7 +51,8 @@ echo " (1/3) Building Mock Instrument Plugins"
 echo "=========================================================="
 
 cmake \
-  -DCMAKE_PREFIX_PATH="/opt/instrument-controller;/opt/falcon" \
+  -DCMAKE_FIND_DEBUG_MODE=ON \
+  -Dinstrument-data_DIR=/opt/instrument-controller/share \
   -S "$TEST_DIR" \
   -B "$BUILD_DIR"
 
