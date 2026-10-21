@@ -3,6 +3,20 @@ import (
   "github.com/falcon-autotuning/std-lib@v1.2.4/hub"
   "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/measurementRequest"
   "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/measurementResponse"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/settingRequest"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/instrumentInterfaces/names/ports"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/instrumentInterfaces/names/instrumentPort"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/instrumentInterfaces/waveform"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/instrumentInterfaces/portTransforms/portTransform"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/instrumentInterfaces/portTransforms/portTransforms"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/quantity"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/collections/map"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/collections/array"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/domains/domain"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/domains/labelledDomain"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/arrays/labelledArrays"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/arrays/labelledMeasuredArray"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/domains/coupledLabelledDomain"
 )
 
 
@@ -21,7 +35,7 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         query.SetConnection(Connection.NewOhmic("O1"));
         query.SetInstrument(Instrument.NewAmnmeter());
         query.SetCharacteristic(Characteristic.NewNumberOfSamples();
-        // TODO: check read/write access
+        // NOTE: should check read/write access
 
         // Check if match 
         Error err = settings.IsQueryMatch(query)
