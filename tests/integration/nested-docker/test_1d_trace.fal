@@ -1,8 +1,8 @@
 import (
-  "github.com/falcon-autotuning/std-lib@v1.2.3/testing"
-  "github.com/falcon-autotuning/std-lib@v1.2.3/hub"
-  "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementRequest"
-  "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementResponse"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/testing"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/hub"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/measurementRequest"
+  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/measurementResponse"
 )
 
 

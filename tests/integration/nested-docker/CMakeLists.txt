@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
+project(wellness_plugins C CXX)
 
 find_package(instrument-data CONFIG REQUIRED)
-project(wellness_plugins C)
 
 add_library(plugin-helpers INTERFACE)
 

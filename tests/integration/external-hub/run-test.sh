@@ -68,10 +68,10 @@ docker run --rm \
     cp /test_src/test_external_hub.fal .
 
     falcon-pm --init . ext-hub-test >/dev/null 2>&1
-    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.3/hub >/dev/null 2>&1
-    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.3/testing >/dev/null 2>&1
-    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementRequest >/dev/null 2>&1
-    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementResponse >/dev/null 2>&1
+    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.4/hub >/dev/null 2>&1
+    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.4/testing >/dev/null 2>&1
+    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/measurementRequest >/dev/null 2>&1
+    falcon-pm --install github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/communications/messages/measurementResponse >/dev/null 2>&1
 
     echo 'Running falcon-test...'
     falcon-test ./test_external_hub.fal --log-level info

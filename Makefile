@@ -40,10 +40,6 @@ build: configure
 	@echo "Building $(PRESET)..."
 	cmake --build --preset $(PRESET)
 
-test: docker-build 
-	@echo "Testing $(PRESET)..."
-	./tests/integration/external-hub/run-test.sh
-
 install: build
 	@echo "Installing $(PRESET) to /opt/falcon..."
 	cmake --install $(CMAKE_BUILD_DIR) --prefix /opt/falcon
@@ -57,7 +53,7 @@ clean:
 # Docker & Database Configuration Targets
 # ==========================================
 
-RELEASE_VERSION ?= v1.2.0
+RELEASE_VERSION ?= v1.1.3
 PACKAGE_DIR ?= $(CURDIR)/packaging/release
 
 DOCKER_REGISTRY ?= ghcr.io
@@ -73,9 +69,10 @@ DB_DATA_VOLUME ?= falcon-postgres-data
 
 docker-build:
 	@echo "Building Falcon Docker Image..."
-	docker build -t $(DOCKER_IMAGE) -t $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) -f packaging/docker/Dockerfile .
+	docker build -t $(DOCKER_IMAGE) -t $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG) -t $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) -f packaging/docker/Dockerfile .
 	@echo "✓ Docker image built with tags:"
 	@echo "  - $(DOCKER_IMAGE)"
+	@echo "  - $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DOCKER_TAG)"
 	@echo "  - $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION)"
 
 docker-push:
@@ -88,14 +85,11 @@ package-release: docker-build
 	@echo "Packaging release artifacts for version $(RELEASE_VERSION)..."
 	mkdir -p $(PACKAGE_DIR)
 	
-	# Linux/Mac package
+	# Linux package with native binaries
 	rm -rf $(PACKAGE_DIR)/linux
 	mkdir -p $(PACKAGE_DIR)/linux/falcon
-	# Extract toolchain from versioned Docker image
+	# Extract toolchain from versioned Docker image (includes native bin, lib, include, share)
 	docker run --rm $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) tar -C /opt/falcon -cf - . | tar -C $(PACKAGE_DIR)/linux/falcon -xf -
-	# Copy wrappers over binaries (overwriting them with host wrappers)
-	cp packaging/wrappers/linux_mac/*.sh $(PACKAGE_DIR)/linux/falcon/bin/
-	for f in $(PACKAGE_DIR)/linux/falcon/bin/*.sh; do [ -f "$$f" ] && mv "$$f" "$${f%.sh}" || true; done
 	chmod +x $(PACKAGE_DIR)/linux/falcon/bin/*
 	tar -czf $(PACKAGE_DIR)/falcon-$(RELEASE_VERSION)-Linux.tar.gz -C $(PACKAGE_DIR)/linux falcon
 	rm -rf $(PACKAGE_DIR)/linux
@@ -109,7 +103,11 @@ package-release: docker-build
 	
 	# Export Docker Image (versioned)
 	@echo "Exporting Falcon Docker Image $(RELEASE_VERSION) (this may take a while)..."
-	docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) | pigz -9 -p 4 > $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz
+	if command -v pigz >/dev/null 2>&1; then \
+		docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) | pigz -9 -p 4 > $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz; \
+	else \
+		docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(RELEASE_VERSION) | gzip -9 > $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz; \
+	fi
 	
 	# Also create a symlink for latest
 	ln -sf $(PACKAGE_DIR)/falcon-image-$(RELEASE_VERSION).tar.gz $(PACKAGE_DIR)/falcon-image.tar.gz
