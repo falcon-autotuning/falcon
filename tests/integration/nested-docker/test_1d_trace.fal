@@ -28,60 +28,61 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         Ports knobs; 
         Ports meters; 
         Ports settings;
-        knobs, meters, settings = hub.RequestPortPayload(10000);
+        knobs, meters, settings = RequestPortPayload(10000);
 
         // Construct port query for number of bins with O1
-        PortQuery query = PortQuery.New();
-        query.SetConnection(Connection.NewOhmic("O1"));
-        query.SetInstrument(Instrument.NewAmnmeter());
-        query.SetCharacteristic(Characteristic.NewNumberOfSamples();
+        PortQuery queryo1 = PortQuery.New();
+        queryo1.SetConnection(Connection.NewOhmic("O1"));
+        queryo1.SetInstrument(Instrument.NewAmnmeter());
+        queryo1.SetCharacteristic(Characteristic.NewNumberOfSamples());
         // NOTE: should check read/write access
 
         // Check if match 
-        Error err = settings.IsQueryMatch(query)
+        Error err = settings.IsQueryMatch(queryo1);
         if (err != nil) {
-            t.ExpectTrue(err == nil, "err detected from query match")
+            t.ExpectTrue(err == nil, "err detected from query match");
             -> __end(runner, t);
         }
-        InstrumentPort port = settings.FindQueryMatch(query);
+        InstrumentPort port = settings.FindQueryMatch(queryo1);
         Quantity numbins = Quantity.New(10.0, SymbolUnit.Dimensionless());
-        Map<InstrumentPort, Quantity> settings = Map.New();
-        settings.Set(port, numbins)
+        Map<InstrumentPort, Quantity> settingsForRequest= Map.New();
+        settingsForRequest.Set(port, numbins);
 
         // Request Setting for number of bins
-        hub.RequestSetting(SettingRequest.New("Setting number of bins for O1", Ports.New(),settings), 10000)
+        Array<InstrumentPort> emptyGetters = Array.New();
+        RequestSetting(SettingRequest.New("Setting number of bins for O1", Ports.New(emptyGetters),settingsForRequest), 10000);
 
         // Construct port query for knob P1 
-        PortQuery query = PortQuery.New();
-        query.SetConnection(Connection.NewPlungerGate("P1"));
-        query.SetInstrument(Instrument.NewDcVoltageSource());
-        query.SetCharacteristic(Characteristic.NewNone();
+        PortQuery queryp1 = PortQuery.New();
+        queryp1.SetConnection(Connection.NewPlungerGate("P1"));
+        queryp1.SetInstrument(Instrument.NewDcVoltageSource());
+        queryp1.SetCharacteristic(Characteristic.NewNone());
 
         // Check if match 
-        Error err = knobs.IsQueryMatch(query)
+        err = knobs.IsQueryMatch(queryp1);
         if (err != nil) {
-            t.ExpectTrue(err == nil, "err detected from query match")
+            t.ExpectTrue(err == nil, "err detected from query match");
             -> __end(runner, t);
         }
-        InstrumentPort p1= knobs.FindQueryMatch(query);
+        InstrumentPort p1= knobs.FindQueryMatch(queryp1);
 
         // Construct port query for meter O1
         PortQuery query = PortQuery.New();
         query.SetConnection(Connection.NewOhmic("O1"));
         query.SetInstrument(Instrument.NewAmnmeter());
-        query.SetCharacteristic(Characteristic.NewNone();
+        query.SetCharacteristic(Characteristic.NewNone());
 
         // Check if match 
-        Error err = meters.IsQueryMatch(query);
+        err = meters.IsQueryMatch(query);
         if (err != nil) {
-            t.ExpectTrue(err == nil, "err detected from query match")
+            t.ExpectTrue(err == nil, "err detected from query match");
             -> __end(runner, t);
         }
         InstrumentPort o1 = meters.FindQueryMatch(query);
 
         // Build measurement axes
         Array<LabelledDomain> firstDimension = Array.New();
-        Array.PushBack(LabelledDomain.FromPort(0.1, -0.1, p1, true, true));
+        firstDimension.PushBack(LabelledDomain.FromPort(0.1, -0.1, p1, true, true));
         Axes<CoupledLabelledDomain> domainAxes = Axes.New();
         domainAxes.PushBack(firstDimension);
 
@@ -96,7 +97,7 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         increasing.PushBack(firstDimensionIncreasing);
 
         // Build the domain
-        Domain domain = Domain.New(0, 1, false, false);
+        Domain domain = Domain.New(0.0, 1.0, false, false);
 
         // Build the request pieces 
         Waveform waveform = Waveform.NewCartesianIdentityWaveform(divisions, domainAxes, increasing, domain);
@@ -109,9 +110,9 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         PortTransforms transforms = PortTransforms.New(rawtransforms);
 
         // Dispatch measurement to falcon-instrument-hub over NATS
-        measurementResponse::MeasurementResponse resp = hub.RequestMeasurement(MeasurementRequest.New("taking this 1D measurement", waveforms, getters, transforms, timeDomain), 10000);
+        measurementResponse::MeasurementResponse resp = RequestMeasurement(MeasurementRequest.New("taking this 1D measurement", waveforms, getters, transforms, timeDomain), 10000);
 
-        LabelledArrays<LabelledMeasuredArray> measurementarrays = resp->Arrays();
+        LabelledArrays<LabelledMeasuredArray> measurementarrays = resp.Arrays();
         t.ExpectTrue(measurementarrays.IsMeasuredArrays(), "was not measurement arrays");
         t.ExpectTrue(measurementarrays.Size() == 1, "more than 1 measurement array was detected");
 
