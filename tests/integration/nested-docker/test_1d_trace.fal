@@ -5,11 +5,17 @@ import (
   "github.com/falcon-autotuning/std-lib@v1.2.3/falconCore/communications/messages/measurementResponse"
 )
 
+
 autotuner Integration1DTraceTest -> (int passed, int failed) {
     passed = 0; failed = 0;
     start -> __init;
 
     state test_1d_measurement (TestRunner runner, TestContext t) {
+        ports::Ports knobs; 
+        ports::Ports meters; 
+        ports::Ports settings;
+        knobs, meters, settings = hub::RequestPortPayload(10000)
+
         // Construct measurement request for 1D sweep
         string req_json = "{\"command\":\"measure_1D_buffered\",\"setter\":\"P1\",\"getter\":\"M1\",\"voltages\":[0.0,0.1,0.2,0.3,0.4,0.5],\"sample_rate\":1000}";
         measurementRequest::MeasurementRequest req = measurementRequest::MeasurementRequest.FromJSON(req_json);
