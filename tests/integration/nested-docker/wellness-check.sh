@@ -27,7 +27,16 @@ if [[ ! -d "$WORKSPACE" ]]; then
 fi
 echo "Using workspace: $WORKSPACE"
 
-TEST_DIR="$WORKSPACE/tests/integration/nested-docker"
+if [[ -f "$WORKSPACE/test_1d_trace.fal" ]]; then
+  TEST_DIR="$WORKSPACE"
+elif [[ -f "$WORKSPACE/tests/integration/nested-docker/test_1d_trace.fal" ]]; then
+  TEST_DIR="$WORKSPACE/tests/integration/nested-docker"
+else
+  echo "❌ Could not locate wellness test assets"
+  exit 1
+fi
+echo "Using test directory: $TEST_DIR"
+
 BUILD_DIR="$TEST_DIR/build"
 mkdir -p "$BUILD_DIR" /tmp/measurements /tmp/hub-workdir
 
