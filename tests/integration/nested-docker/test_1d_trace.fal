@@ -14,7 +14,6 @@ import (
   "github.com/falcon-autotuning/std-lib@v1.2.4/collections/array"
   "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/domains/domain"
   "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/domains/labelledDomain"
-  "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/arrays/labelledArrays"
   "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/arrays/labelledMeasuredArray"
   "github.com/falcon-autotuning/std-lib@v1.2.4/falconCore/math/domains/coupledLabelledDomain"
 )
@@ -114,8 +113,7 @@ autotuner Integration1DTraceTest -> (int passed, int failed) {
         // Dispatch measurement to falcon-instrument-hub over NATS
         measurementResponse::MeasurementResponse resp = RequestMeasurement(MeasurementRequest.New("taking this 1D measurement", waveforms, getters, transforms, timeDomain), 10000);
 
-        LabelledArrays<LabelledMeasuredArray> measurementarrays = resp.Arrays();
-        t.ExpectTrue(measurementarrays.IsMeasuredArrays(), "was not measurement arrays");
+        Array<LabelledMeasuredArray> measurementarrays = resp.Arrays();
         t.ExpectTrue(measurementarrays.Size() == 1, "more than 1 measurement array was detected");
 
         -> __end(runner, t);
