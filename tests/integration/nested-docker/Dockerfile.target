@@ -26,7 +26,7 @@ RUN curl -fsSL https://github.com/falcon-autotuning/instrument-controller/releas
 
 # Install falcon via standard release script
 RUN curl -fsSL \
-  https://github.com/falcon-autotuning/falcon/releases/download/v1.2.0/install.sh | bash
+  https://github.com/falcon-autotuning/falcon/releases/download/v2.0.0/install.sh | bash
 
 ENV PATH="/opt/falcon/bin:/opt/instrument-controller/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/falcon/lib:/opt/instrument-controller/lib:${LD_LIBRARY_PATH:-}"
