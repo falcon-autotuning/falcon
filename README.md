@@ -1,94 +1,187 @@
-# Falcon Lib
+# FAlCon
 
-**Falcon Lib** is a comprehensive C++ and DSL-based framework for quantum device autotuning. It bridges measurement requests from the Falcon core system with physical hardware instruments, providing a complete suite of libraries, tools, and examples for building robust quantum device control workflows.
+**FAlCon** is an open-source framework for quantum device autotuning, measurement automation, and experimental orchestration.
 
-## What's Inside
+Built around the FAlCon DSL and a modular runtime architecture, FAlCon enables researchers to develop reproducible autotuning workflows that integrate directly with laboratory instrumentation, data acquisition systems, simulation environments, and quantum device control software.
 
-Falcon Lib is organized into several key components:
+> 🚀 **Latest Release:** [FAlCon v2.0.0](https://github.com/falcon-autotuning/falcon/releases/tag/v2.0.0)
 
-- **DSL (Domain-Specific Language)**: A high-level language for defining quantum device autotuning state machines
-- **Database**: C++ PostgreSQL backend for storing device characteristics
-- **Communications (comms)**: NATS-based messaging infrastructure for device control
-- **QArray Device Module**: Specialized support for quantum dot array devices
-- **Core Libraries**: Collections, math utilities, physics models, and device structures
-- **Typing System**: Runtime type system and FFI (Foreign Function Interface) support
+## Documentation
+
+Full documentation is available at:
+
+https://falcon-autotuning.github.io/falcon-lib/
+
+---
 
 ## Quick Start
 
-Currently this application only works on Linux. This may work on windows with WSL2.
-Windows support is currently deprecated, but much of the structures for support are already in place.
+### Install FAlCon v2.0.0
 
-See the [documentation](https://falcon-autotuning.github.io/falcon-lib/).
+Currently, FAlCon is supported on Linux.
 
-### **COMING BACK ONLINE SOON** For Users: Run the Demo
+Install the latest release with:
 
 ```bash
-cd demos/qarray-charge-tuning
-make docker-up
-falcon-test ./tests/run_tests.fal --log-level info
+curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v2.0.0/install.sh | sudo bash
 ```
 
-[Try the Demo on GitHub](https://github.com/falcon-autotuning/falcon-lib/tree/main/demos/qarray-charge-tuning)
+After installation, the primary executables should be available:
 
-### For Users: Install the latest release
+falcon-run
+falcon-test
 
-To install this onto your system, please run one of the following commands where you replace **<VERSION>** with the version that you want to install:
+### Verify Your Installation
 
+FAlCon v2.0.0 includes a built-in wellness validation tool that verifies your installation and runtime environment.
+
+Run:
 ```bash
-curl -fsSL https://github.com/falcon-autotuning/falcon/releases/download/v<VERSION>/install.sh | sudo bash
+/opt/falcon/wellness/wellness-check.sh /opt/falcon/wellness/
 ```
 
-### For Algorithm/Backend Developers: Build from Source
+The wellness checker validates:
 
-To develop analysis and other runtime features, you must build FAlCon from source.
-**Ubuntu 24.04** is the recommended platform for development.
-The rest of this install assumes [Ubuntu](https://releases.ubuntu.com/noble/).
-This install mirrors the install of the real docker container used for release.
-It installs the packages to `/opt/falcon`, and is why **sudo** is required.
-For the versions of the packages, please see the ubuntu release for the ones tested.
+FAlCon installation integrity
+Runtime dependencies
+Shared library discovery
+Package configuration
+DSL tooling availability
+Executable availability
+General environment health
 
-#### Prerequisites
+This is the recommended first step after installation and whenever diagnosing environment issues.
 
-Vcpkg is our package manager and must be installed and available in your path to successfully build.
-See [vcpkg](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-bash) for Microsoft's tutorial on installing vcpkg.
+---
 
-#### Build Steps on Ubuntu 24.04
+## Core Components
+### FAlCon DSL
 
+A domain-specific language for defining measurement procedures, autotuning algorithms, state machines, and experimental workflows.
+
+### Runtime & Execution Engine
+
+The execution environment responsible for running FAlCon workflows against simulation backends or physical hardware.
+
+### Instrument Integration
+
+Interfaces and communication infrastructure that connect FAlCon workflows to laboratory instrumentation.
+
+### Testing & Simulation
+
+Frameworks for developing and validating workflows before deployment on physical devices.
+
+---
+
+## Main Features
+
+### ✨ Quantum Device Autotuning
+ Develop complex tuning procedures using a high-level DSL and reusable workflows.
+
+### 🔌 Hardware Integration
+ Connect experimental hardware and measurement systems through modular instrument interfaces.
+
+### 📊 Data Management
+ Store and manage characterization data, device metadata, and experimental results.
+
+### 🧪 Built-In Testing
+ Develop and validate workflows using automated testing infrastructure.
+
+### 🧬 Quantum Device Models
+ Leverage reusable models and abstractions for quantum-dot devices and related systems.
+
+### 📚 Language Tooling
+ IDE tooling and language-server support for developing FAlCon workflows.
+
+### ⚙️ Simulation Support
+ Test workflows and algorithms before deploying them to laboratory hardware.
+
+---
+
+## For Algorithm and Backend Developers
+
+Building from source is recommended for developers extending the runtime, language tooling, simulation environment, or backend infrastructure.
+
+Ubuntu 24.04 is the recommended development platform.
+
+FAlCon installs into /opt/falcon and therefore requires administrator privileges during installation.
+
+### Prerequisites
+
+FAlCon uses vcpkg for package management.
+
+Install and configure vcpkg before attempting to build:
+
+https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-bash
+
+#### Build Dependencies
 ```bash
-apt update && apt install -y build-essential cmake bison flex pkg-config git curl zip unzip tar linux-libc-dev autoconf autoconf-archive automake libtool ninja-build lld coreutils gfortran mono-complete clang llvm
+sudo apt update
 
+sudo apt install -y \
+    build-essential \
+    cmake \
+    bison \
+    flex \
+    pkg-config \
+    git \
+    curl \
+    zip \
+    unzip \
+    tar \
+    linux-libc-dev \
+    autoconf \
+    autoconf-archive \
+    automake \
+    libtool \
+    ninja-build \
+    lld \
+    coreutils \
+    gfortran \
+    mono-complete \
+    clang \
+    llvm
+```
+
+Build and Install
+```bash
 sudo make install PRESET=linux-clang-release
 ```
 
-To find the packages on your system after the install two global variables need to be updated.
-This will set for your immediate shell session.
-To make this permanent, add these to your `~/.bashrc` or `~/.zshrc` file.
+Environment Configuration
+
+For the current shell:
 
 ```bash
 export PATH="/opt/falcon/bin:$PATH"
 export PKG_CONFIG_PATH="/opt/falcon/lib/pkgconfig:$PKG_CONFIG_PATH"
 ```
 
-And that is it! **falcon-run** and **falcon-test** should now be available in your path. Any questions reach out to the main developers or open an issue on GitHub.
+To make these settings permanent, add them to:
 
-## Main Features
+~/.bashrc
 
-✨ Quantum Device Autotuning: Define complex control workflows as declarative state machines
 
-🔌 Hardware Integration: FFI support for binding C++ measurement functions to .fal autotuners
+or
 
-📊 Device Database: PostgreSQL-backed storage for device characteristics and global tuning parameters
+~/.zshrc
 
-🌐 NATS Messaging: Distributed communication for multi-device systems
+Contributing
 
-🧪 Built-in Testing: Test runner with setup/teardown fixtures and detailed diagnostics
+Contributions are welcome.
 
-📚 Language Server: IDE support via LSP for .fal files (Neovim)
+Areas where contributions are particularly valuable include:
 
-## Contributing
+Autotuning algorithms
+Instrument integrations
+Documentation
+Testing infrastructure
+Simulation environments
+User interfaces and visualization
+Language tooling and developer experience
 
-We welcome contributions! Please refer to our contributing guidelines in the documentation.
+Please open an issue or pull request to get involved.
 
-## License
+License
 
 MPL-2.0
